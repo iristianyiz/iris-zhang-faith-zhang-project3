@@ -36,7 +36,8 @@ export function SudokuBoard({
       className="sudoku-board"
       style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
       role="grid"
-      aria-label={`Sudoku grid ${size} by ${size}`}
+      aria-readonly={readOnly ? true : undefined}
+      aria-label={`Sudoku grid ${size} by ${size}${readOnly ? ", view only" : ""}`}
     >
       {currentBoard.map((row, r) =>
         row.map((value, c) => {

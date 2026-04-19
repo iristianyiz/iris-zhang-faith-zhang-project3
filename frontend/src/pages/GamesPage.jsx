@@ -60,17 +60,24 @@ export function GamesPage() {
       </p>
 
       {!isLoggedIn ? (
-        <div className="banner-info banner-centered">
+        <div
+          id="games-readonly-hint"
+          className="banner-info banner-centered"
+          role="status"
+        >
           You can browse puzzles, but you need to{" "}
           <Link to="/login">log in</Link> to create a game or save moves.
         </div>
       ) : null}
 
-      <div className="cta-row">
+      <div className={`cta-row${!isLoggedIn ? " cta-row-readonly" : ""}`}>
         <button
           type="button"
           className="btn btn-primary"
           disabled={!isLoggedIn || busy !== null}
+          aria-disabled={!isLoggedIn || busy !== null}
+          aria-describedby={!isLoggedIn ? "games-readonly-hint" : undefined}
+          title={!isLoggedIn ? "Sign in to create a game" : undefined}
           onClick={() => void create("NORMAL")}
         >
           {busy === "NORMAL" ? "Creating…" : "Create normal game (9×9)"}
@@ -79,6 +86,9 @@ export function GamesPage() {
           type="button"
           className="btn btn-secondary"
           disabled={!isLoggedIn || busy !== null}
+          aria-disabled={!isLoggedIn || busy !== null}
+          aria-describedby={!isLoggedIn ? "games-readonly-hint" : undefined}
+          title={!isLoggedIn ? "Sign in to create a game" : undefined}
           onClick={() => void create("EASY")}
         >
           {busy === "EASY" ? "Creating…" : "Create easy game (6×6)"}
@@ -95,7 +105,9 @@ export function GamesPage() {
           </p>
         ) : games.length === 0 ? (
           <p className="muted" style={{ marginBottom: 0 }}>
-            No games yet. Create one to get started.
+            {isLoggedIn
+              ? "No games yet. Create one to get started."
+              : "No games yet. Log in to create the first puzzle."}
           </p>
         ) : (
           <ul className="list-p2">

@@ -1,7 +1,19 @@
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+
 export function RulesPage() {
+  const { isLoggedIn } = useAuth();
+
   return (
     <div className="container page">
       <h1 className="page-title">Rules</h1>
+      {!isLoggedIn ? (
+        <p className="muted" style={{ maxWidth: "52ch", marginTop: "-0.25rem" }}>
+          This page is informational only. To play,{" "}
+          <Link to="/login">log in</Link> or <Link to="/register">register</Link>
+          , then open <Link to="/games">Games</Link>.
+        </p>
+      ) : null}
       <div className="card prose" style={{ textAlign: "left" }}>
         <h2>Goal</h2>
         <p>

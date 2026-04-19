@@ -6,6 +6,18 @@ export function HomePage() {
 
   return (
     <div className="container page">
+      {!isLoggedIn ? (
+        <div
+          className="banner-info banner-centered"
+          style={{ marginBottom: "1rem" }}
+          role="status"
+        >
+          You can open every page while signed out—games and boards are{" "}
+          <strong>view only</strong> until you{" "}
+          <Link to="/login">log in</Link> or <Link to="/register">register</Link>
+          .
+        </div>
+      ) : null}
       <section className="hero">
         <h1>Sudoku Master</h1>
         <p>

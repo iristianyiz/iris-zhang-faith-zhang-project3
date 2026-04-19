@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import { getApiErrorMessage } from "../utils/apiError.js";
 
 export function ScoresPage() {
+  const { isLoggedIn } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +35,13 @@ export function ScoresPage() {
         Wins come from games you completed while logged in. Users with zero wins
         are hidden. Ties are broken alphabetically by username.
       </p>
+
+      {!isLoggedIn ? (
+        <div className="banner-info banner-centered" role="status">
+          Leaderboard is read-only for visitors.{" "}
+          <Link to="/login">Log in</Link> to play and earn wins.
+        </div>
+      ) : null}
 
       {error ? <div className="banner-error">{error}</div> : null}
 

@@ -50,44 +50,55 @@ export function Navbar() {
         </button>
 
         <div className={menuOpen ? "nav-links open" : "nav-links"}>
-          <NavLink to="/" end className={navLinkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/games" className={navLinkClass}>
-            Select Game
-          </NavLink>
-          <NavLink to="/rules" className={navLinkClass}>
-            Rules
-          </NavLink>
-          <NavLink to="/scores" className={navLinkClass}>
-            High Scores
-          </NavLink>
-          {loading ? (
-            <span className="nav-muted">…</span>
-          ) : isLoggedIn ? (
-            <>
-              <span className="nav-user-inline">
-                Hi, <span className="username-pill">{username}</span>
-              </span>
-              <button
-                type="button"
-                className="nav-link nav-link-button"
-                onClick={() => void handleLogout()}
-                disabled={loggingOut}
-              >
-                {loggingOut ? "Logging out…" : "Log out"}
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" className={navLinkClass}>
-                Login
-              </NavLink>
-              <NavLink to="/register" className={navLinkClass}>
-                Register
-              </NavLink>
-            </>
-          )}
+          <div className="nav-links-primary">
+            <NavLink to="/" end className={navLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/games" className={navLinkClass}>
+              Games
+            </NavLink>
+            <NavLink to="/rules" className={navLinkClass}>
+              Rules
+            </NavLink>
+            <NavLink to="/scores" className={navLinkClass}>
+              High Scores
+            </NavLink>
+          </div>
+
+          <div className="nav-auth" role="navigation" aria-label="Account">
+            {loading ? (
+              <span className="nav-muted">…</span>
+            ) : isLoggedIn ? (
+              <>
+                <span className="nav-user-inline">
+                  Hi,{" "}
+                  <span className="username-pill" title={`Signed in as ${username}`}>
+                    {username}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-nav-logout"
+                  onClick={() => void handleLogout()}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? "Logging out…" : "Log out"}
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="nav-link nav-link-auth">
+                  Log in
+                </NavLink>
+                <span className="nav-auth-sep" aria-hidden>
+                  |
+                </span>
+                <NavLink to="/register" className="nav-link nav-link-auth nav-link-register">
+                  Register
+                </NavLink>
+              </>
+            )}
+          </div>
         </div>
       </nav>
     </header>

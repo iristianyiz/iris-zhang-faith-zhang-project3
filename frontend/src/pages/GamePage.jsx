@@ -180,7 +180,11 @@ export function GamePage() {
           ) : null}
 
           {!isLoggedIn ? (
-            <div className="banner-info">
+            <div
+              id="game-readonly-hint"
+              className="banner-info"
+              role="status"
+            >
               Log in to enter numbers and save progress. You can still view this
               board read-only.
             </div>
@@ -208,6 +212,15 @@ export function GamePage() {
               className="btn btn-secondary"
               onClick={() => void handleReset()}
               disabled={!isLoggedIn || Boolean(game.completed)}
+              aria-disabled={!isLoggedIn || Boolean(game.completed)}
+              aria-describedby={!isLoggedIn ? "game-readonly-hint" : undefined}
+              title={
+                !isLoggedIn
+                  ? "Sign in to reset and save moves"
+                  : game.completed
+                    ? "Completed puzzles cannot be reset"
+                    : undefined
+              }
             >
               Reset puzzle
             </button>
