@@ -17,11 +17,9 @@ export function AuthProvider({ children }) {
   const refresh = useCallback(async () => {
     try {
       const data = await api.isLoggedIn();
-      if (data && typeof data.username === "string") {
-        setUsername(data.username);
-      } else {
-        setUsername(null);
-      }
+      setUsername(
+        data && typeof data.username === "string" ? data.username : null,
+      );
     } catch {
       setUsername(null);
     } finally {
@@ -40,7 +38,8 @@ export function AuthProvider({ children }) {
       // Session may already be invalid; cookie clear is best-effort server-side.
     }
     setUsername(null);
-  }, []);
+    await refresh();
+  }, [refresh]);
 
   const value = useMemo(
     () => ({

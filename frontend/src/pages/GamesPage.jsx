@@ -2,109 +2,116 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
-
-const dateFmt = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
+import { getApiErrorMessage } from "../utils/apiError.js";
+import { formatGameDate } from "../utils/formatDate.js";
 
 export function GamesPage() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const [games, setGames] = useState([]);
-  const [loadError, setLoadError] = useState("");
-  const [creating, setCreating] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [busy, setBusy] = useState(null);
 
-  const loadGames = useCallback(async () => {
-    setLoadError("");
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const list = await api.listGames();
       setGames(Array.isArray(list) ? list : []);
-    } catch {
-      setLoadError("Could not load games.");
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not load games."));
       setGames([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void loadGames();
-  }, [loadGames]);
+    void load();
+  }, [load]);
 
-  async function handleCreate(difficulty) {
-    if (!isLoggedIn || creating) return;
-    setCreating(difficulty);
+  async function create(difficulty) {
+    if (!isLoggedIn) return;
+    setBusy(difficulty);
+    setError(null);
     try {
-      const { gameId } = await api.createGame({ difficulty });
-      if (gameId) {
-        navigate(`/game/${gameId}`);
+      const res = await api.createGame({ difficulty });
+      if (res?.gameId) {
+        navigate(`/game/${res.gameId}`);
+        return;
       }
-    } catch {
-      setLoadError("Could not create a game. Try signing in again.");
+      setError("Server did not return a game id.");
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not create game."));
     } finally {
-      setCreating(null);
+      setBusy(null);
     }
   }
 
   return (
-    <section>
-      <h1>Games</h1>
-      <p style={{ color: "#64748b", marginBottom: "1rem" }}>
-        {isLoggedIn
-          ? "Create a new puzzle or open one from the list."
-          : "You can browse games below. Log in or register to create new games."}
-      </p>
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+    <div className="page stack">
+      <header>
+        <h1>Games</h1>
+        <p className="muted">
+          Create a new puzzle or open one you have already started. Dates use
+          your browser locale.
+        </p>
+      </header>
+
+      {!isLoggedIn ? (
+        <div className="banner-info">
+          You can browse puzzles, but you need to{" "}
+          <Link to="/login">log in</Link> to create a game or save moves.
+        </div>
+      ) : null}
+
+      <div className="row">
         <button
           type="button"
-          disabled={!isLoggedIn || Boolean(creating)}
-          onClick={() => void handleCreate("NORMAL")}
-          title={
-            isLoggedIn ? undefined : "Sign in to create a game"
-          }
+          className="btn btn-primary"
+          disabled={!isLoggedIn || busy !== null}
+          onClick={() => void create("NORMAL")}
         >
-          {creating === "NORMAL" ? "Creating…" : "Create Normal Game"}
+          {busy === "NORMAL" ? "Creating…" : "Create normal game"}
         </button>
         <button
           type="button"
-          disabled={!isLoggedIn || Boolean(creating)}
-          onClick={() => void handleCreate("EASY")}
-          title={isLoggedIn ? undefined : "Sign in to create a game"}
+          className="btn btn-secondary"
+          disabled={!isLoggedIn || busy !== null}
+          onClick={() => void create("EASY")}
         >
-          {creating === "EASY" ? "Creating…" : "Create Easy Game"}
+          {busy === "EASY" ? "Creating…" : "Create easy game"}
         </button>
       </div>
-      {loadError ? (
-        <p role="alert" style={{ color: "#b91c1c", marginTop: "1rem" }}>
-          {loadError}
-        </p>
-      ) : null}
-      <h2 style={{ marginTop: "1.5rem", fontSize: "1.1rem" }}>All games</h2>
-      {games.length === 0 ? (
-        <p style={{ color: "#64748b" }}>No games yet.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {games.map((g) => (
-            <li
-              key={g.id}
-              style={{
-                borderBottom: "1px solid #e2e8f0",
-                padding: "0.65rem 0",
-              }}
-            >
-              <Link to={`/game/${g.id}`} style={{ fontWeight: 600 }}>
-                {g.name}
-              </Link>
-              <span style={{ color: "#64748b", marginLeft: "0.5rem" }}>
-                · {g.difficulty} · {g.creatorUsername ?? "—"} ·{" "}
-                {g.createdAt
-                  ? dateFmt.format(new Date(g.createdAt))
-                  : "—"}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+
+      {error ? <div className="banner-error">{error}</div> : null}
+
+      <section className="card stack">
+        <h2 style={{ marginTop: 0 }}>All games</h2>
+        {loading ? (
+          <p className="muted">Loading games…</p>
+        ) : games.length === 0 ? (
+          <p className="muted">No games yet. Create one to get started.</p>
+        ) : (
+          <ul className="game-list">
+            {games.map((g) => (
+              <li key={g.id}>
+                <Link to={`/game/${g.id}`}>
+                  <strong>{g.name}</strong>{" "}
+                  <span className="tag">{g.difficulty}</span>
+                  <div className="meta">
+                    {formatGameDate(g.createdAt)}
+                    {g.creatorUsername ? (
+                      <> · by {g.creatorUsername}</>
+                    ) : null}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }

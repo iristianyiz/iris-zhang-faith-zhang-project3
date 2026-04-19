@@ -1,249 +1,200 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client.js";
+import { SudokuBoard } from "../components/SudokuBoard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-
-function cloneGrid(grid) {
-  if (!Array.isArray(grid)) return null;
-  return grid.map((row) => [...row]);
-}
-
-function cellBorderStyle(row, col) {
-  return {
-    borderTop: row % 3 === 0 ? "2px solid #0f172a" : "1px solid #94a3b8",
-    borderLeft: col % 3 === 0 ? "2px solid #0f172a" : "1px solid #94a3b8",
-    borderRight: col === 8 ? "2px solid #0f172a" : undefined,
-    borderBottom: row === 8 ? "2px solid #0f172a" : undefined,
-  };
-}
+import { getApiErrorMessage } from "../utils/apiError.js";
+import { formatGameDate } from "../utils/formatDate.js";
 
 export function GamePage() {
   const { gameId } = useParams();
-  const { isLoggedIn } = useAuth();
-  const [detail, setDetail] = useState(null);
+  const { isLoggedIn, username } = useAuth();
+  const [game, setGame] = useState(null);
   const [board, setBoard] = useState(null);
-  const [dirty, setDirty] = useState(false);
+  const [error, setError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-  const [saveError, setSaveError] = useState("");
-  const [saving, setSaving] = useState(false);
+
+  const debounceRef = useRef(null);
+  const playStartRef = useRef(null);
+  const postedHighscoreRef = useRef(false);
 
   const loadGame = useCallback(async () => {
     if (!gameId) return;
     setLoading(true);
-    setLoadError("");
+    setError(null);
     try {
       const data = await api.getGame(gameId);
-      setDetail(data);
-      setBoard(cloneGrid(data.currentBoard));
-      setDirty(false);
-      setSaveError("");
-    } catch {
-      setLoadError("Game not found or could not be loaded.");
-      setDetail(null);
+      setGame(data);
+      setBoard(data.currentBoard.map((row) => [...row]));
+      if (isLoggedIn && !data.completed) {
+        playStartRef.current ??= Date.now();
+      }
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not load game."));
+      setGame(null);
       setBoard(null);
     } finally {
       setLoading(false);
     }
+  }, [gameId, isLoggedIn]);
+
+  useEffect(() => {
+    postedHighscoreRef.current = false;
+    playStartRef.current = null;
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+    };
   }, [gameId]);
 
   useEffect(() => {
     void loadGame();
   }, [loadGame]);
 
-  const completed = Boolean(detail?.completed);
-  const canPlay = isLoggedIn && !completed;
-  const initial = detail?.initialBoard;
+  const readOnly = !isLoggedIn || Boolean(game?.completed);
 
-  function setCell(row, col, digit) {
-    if (!canPlay || !board || !initial) return;
-    if (initial[row][col] !== 0) return;
-    const next = board.map((r) => [...r]);
-    next[row][col] = digit;
-    setBoard(next);
-    setDirty(true);
-    setSaveError("");
+  const flushSave = useCallback(
+    async (grid) => {
+      if (!gameId || !isLoggedIn) return;
+      try {
+        setSaveError(null);
+        const data = await api.updateGame(gameId, { currentBoard: grid });
+        setGame(data);
+        setBoard(data.currentBoard.map((row) => [...row]));
+        if (data.completed && isLoggedIn && !postedHighscoreRef.current) {
+          postedHighscoreRef.current = true;
+          const start = playStartRef.current ?? Date.now();
+          const elapsed = Math.max(1, Math.round((Date.now() - start) / 1000));
+          try {
+            await api.postHighscore({ gameId, elapsedSeconds: elapsed });
+          } catch {
+            postedHighscoreRef.current = false;
+          }
+        }
+      } catch (err) {
+        setSaveError(getApiErrorMessage(err, "Could not save your move."));
+        await loadGame();
+      }
+    },
+    [gameId, isLoggedIn, loadGame],
+  );
+
+  const scheduleSave = useCallback(
+    (grid) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        debounceRef.current = null;
+        void flushSave(grid);
+      }, 450);
+    },
+    [flushSave],
+  );
+
+  function handleCellChange(r, c, v) {
+    if (!game || readOnly) return;
+    setBoard((prev) => {
+      const next = prev.map((row) => [...row]);
+      next[r][c] = v;
+      scheduleSave(next);
+      return next;
+    });
   }
 
-  async function persist(body) {
-    if (!gameId || !canPlay) return;
-    setSaving(true);
-    setSaveError("");
+  async function handleReset() {
+    if (!gameId || !isLoggedIn || game?.completed) return;
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
     try {
-      const data = await api.updateGame(gameId, body);
-      setDetail(data);
-      setBoard(cloneGrid(data.currentBoard));
-      setDirty(false);
+      setSaveError(null);
+      const data = await api.updateGame(gameId, { reset: true });
+      setGame(data);
+      setBoard(data.currentBoard.map((row) => [...row]));
+      playStartRef.current = Date.now();
     } catch (err) {
-      setSaveError(err?.data?.error || "Could not save.");
-    } finally {
-      setSaving(false);
+      setSaveError(getApiErrorMessage(err, "Could not reset the board."));
     }
   }
 
-  if (loading) {
-    return (
-      <section>
-        <h1>Game</h1>
-        <p>Loading…</p>
-      </section>
-    );
-  }
-
-  if (loadError || !detail || !board || !initial) {
-    return (
-      <section>
-        <h1>Game</h1>
-        <p role="alert">{loadError || "Missing data."}</p>
-        <p>
-          <Link to="/games">Back to games</Link>
-        </p>
-      </section>
-    );
-  }
+  const viewerIsCompleter = Boolean(
+    game?.completed &&
+      username &&
+      game.completedByUsername &&
+      game.completedByUsername === username,
+  );
 
   return (
-    <section>
+    <div className="page stack">
       <p>
-        <Link to="/games">← Games</Link>
+        <Link to="/games">← All games</Link>
       </p>
-      <h1>{detail.name}</h1>
-      <p style={{ color: "#64748b" }}>
-        {detail.difficulty} · by {detail.creatorUsername ?? "—"}
-      </p>
-      {!isLoggedIn ? (
-        <p
-          style={{
-            background: "#e0f2fe",
-            border: "1px solid #7dd3fc",
-            padding: "0.65rem 0.75rem",
-            borderRadius: "6px",
-            marginBottom: "1rem",
-          }}
-        >
-          You are viewing this game in <strong>read-only</strong> mode.{" "}
-          <Link to="/login">Log in</Link> or{" "}
-          <Link to="/register">register</Link> to play and save moves.
-        </p>
+
+      {loading ? <p className="muted">Loading puzzle…</p> : null}
+      {error ? <div className="banner-error">{error}</div> : null}
+
+      {!loading && game && board ? (
+        <>
+          <header>
+            <h1 style={{ marginBottom: "0.35rem" }}>{game.name}</h1>
+            <p className="muted" style={{ marginBottom: 0 }}>
+              <span className="tag">{game.difficulty}</span>
+              {" · "}
+              {formatGameDate(game.createdAt)}
+              {game.creatorUsername ? <> · by {game.creatorUsername}</> : null}
+            </p>
+          </header>
+
+          {game.completed ? (
+            <div className="banner-success">
+              This puzzle is solved
+              {game.completedByUsername
+                ? ` (completed by ${game.completedByUsername})`
+                : ""}
+              .
+              {viewerIsCompleter && game.solution
+                ? " Your solution is shown below with clues."
+                : null}
+            </div>
+          ) : null}
+
+          {!isLoggedIn ? (
+            <div className="banner-info">
+              Log in to enter numbers and save progress. You can still view this
+              board read-only.
+            </div>
+          ) : null}
+
+          {saveError ? <div className="banner-error">{saveError}</div> : null}
+
+          <div className="sudoku-wrap">
+            <SudokuBoard
+              initialBoard={game.initialBoard}
+              currentBoard={board}
+              onCellChange={handleCellChange}
+              readOnly={readOnly}
+            />
+          </div>
+
+          <div className="row" style={{ justifyContent: "center" }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => void handleReset()}
+              disabled={!isLoggedIn || Boolean(game.completed)}
+            >
+              Reset puzzle
+            </button>
+          </div>
+          <p className="muted" style={{ textAlign: "center", marginBottom: 0 }}>
+            Reset restores the original clues and clears your entries for this
+            game.
+          </p>
+        </>
       ) : null}
-      {completed ? (
-        <p style={{ marginBottom: "1rem" }}>
-          Completed
-          {detail.completedByUsername
-            ? ` by ${detail.completedByUsername}`
-            : ""}
-          {detail.completedAt
-            ? ` on ${new Date(detail.completedAt).toLocaleString()}`
-            : ""}
-          .
-        </p>
-      ) : null}
-      <div
-        style={{
-          display: "inline-block",
-          background: "#fff",
-          padding: "0.75rem",
-          borderRadius: "8px",
-          border: "1px solid #e2e8f0",
-        }}
-      >
-        <table
-          className="sudoku-board"
-          style={{ borderCollapse: "collapse", margin: 0 }}
-        >
-          <tbody>
-            {board.map((row, r) => (
-              <tr key={r}>
-                {row.map((cell, c) => {
-                  const given = initial[r][c] !== 0;
-                  const readOnly = !canPlay || given;
-                  return (
-                    <td
-                      key={c}
-                      style={{
-                        width: "2.25rem",
-                        height: "2.25rem",
-                        padding: 0,
-                        ...cellBorderStyle(r, c),
-                        background: given ? "#f1f5f9" : "#fff",
-                      }}
-                    >
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        disabled={readOnly}
-                        aria-label={`Row ${r + 1} column ${c + 1}`}
-                        value={cell === 0 ? "" : String(cell)}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/\D/g, "").slice(-1);
-                          if (v === "") {
-                            setCell(r, c, 0);
-                            return;
-                          }
-                          const n = Number(v);
-                          if (n >= 1 && n <= 9) setCell(r, c, n);
-                        }}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          border: "none",
-                          textAlign: "center",
-                          fontSize: "1.1rem",
-                          fontWeight: given ? 700 : 500,
-                          background: "transparent",
-                          color: "#0f172a",
-                        }}
-                      />
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {canPlay ? (
-        <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-          <button
-            type="button"
-            disabled={saving || !dirty}
-            onClick={() =>
-              void persist({ currentBoard: board.map((row) => [...row]) })
-            }
-          >
-            {saving ? "Saving…" : "Save progress"}
-          </button>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void persist({ reset: true })}
-          >
-            Reset
-          </button>
-        </div>
-      ) : null}
-      {saveError ? (
-        <p role="alert" style={{ color: "#b91c1c", marginTop: "0.75rem" }}>
-          {saveError}
-        </p>
-      ) : null}
-      {detail.solution ? (
-        <div style={{ marginTop: "1.5rem" }}>
-          <h2 style={{ fontSize: "1rem" }}>Solution</h2>
-          <pre
-            style={{
-              fontSize: "0.75rem",
-              overflow: "auto",
-              background: "#f8fafc",
-              padding: "0.75rem",
-              borderRadius: "6px",
-            }}
-          >
-            {JSON.stringify(detail.solution)}
-          </pre>
-        </div>
-      ) : null}
-    </section>
+    </div>
   );
 }

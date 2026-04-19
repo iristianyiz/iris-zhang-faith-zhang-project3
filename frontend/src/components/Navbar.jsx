@@ -1,60 +1,64 @@
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
-const linkStyle = ({ isActive }) => ({
-  fontWeight: isActive ? 600 : 400,
-  textDecoration: isActive ? "underline" : "none",
-});
+function navClass({ isActive }) {
+  return `nav-link${isActive ? " is-active" : ""}`;
+}
 
 export function Navbar() {
-  const { username, isLoggedIn, logout, loading } = useAuth();
+  const { isLoggedIn, username, loading, logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   return (
-    <header
-      style={{
-        borderBottom: "1px solid #e2e8f0",
-        background: "#fff",
-      }}
-    >
-      <nav
-        style={{
-          maxWidth: 960,
-          margin: "0 auto",
-          padding: "0.75rem 1rem",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.75rem 1rem",
-          alignItems: "center",
-        }}
-      >
-        <NavLink to="/" end style={linkStyle}>
+    <header className="site-header">
+      <nav className="site-nav" aria-label="Primary">
+        <NavLink to="/" end className={navClass}>
           Home
         </NavLink>
-        <NavLink to="/games" style={linkStyle}>
+        <NavLink to="/games" className={navClass}>
           Games
         </NavLink>
-        <NavLink to="/rules" style={linkStyle}>
+        <NavLink to="/rules" className={navClass}>
           Rules
         </NavLink>
-        <NavLink to="/scores" style={linkStyle}>
+        <NavLink to="/scores" className={navClass}>
           Scores
         </NavLink>
-        <span style={{ flex: 1 }} />
+        <span className="site-nav-spacer" />
         {loading ? (
-          <span style={{ color: "#64748b" }}>…</span>
+          <span className="muted">…</span>
         ) : isLoggedIn ? (
           <>
-            <span style={{ color: "#0f172a", fontWeight: 600 }}>
-              {username}
+            <span className="nav-user">
+              Hi, <span className="username-pill">{username}</span>
             </span>
-            <button type="button" onClick={() => void logout()}>
-              Log out
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => void handleLogout()}
+              disabled={loggingOut}
+            >
+              {loggingOut ? "Logging out…" : "Log out"}
             </button>
           </>
         ) : (
           <>
-            <Link to="/login">Log in</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login" className="nav-link">
+              Log in
+            </Link>
+            <Link to="/register" className="nav-link">
+              Register
+            </Link>
           </>
         )}
       </nav>

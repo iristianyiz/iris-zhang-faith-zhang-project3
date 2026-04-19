@@ -1,106 +1,74 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client.js";
+import { getApiErrorMessage } from "../utils/apiError.js";
 
 export function ScoresPage() {
   const [rows, setRows] = useState([]);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setError("");
-      try {
-        const data = await api.listWinCounts();
-        if (!cancelled) {
-          setRows(Array.isArray(data) ? data : []);
-        }
-      } catch {
-        if (!cancelled) {
-          setError("Could not load scores.");
-          setRows([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.listWinCounts();
+      setRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not load scores."));
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   return (
-    <section>
-      <h1>Scores</h1>
-      <p style={{ color: "#64748b" }}>
-        Wins per user (read-only for everyone).{" "}
-        <Link to="/games">Browse games</Link>
-      </p>
-      {loading ? <p>Loading…</p> : null}
-      {error ? (
-        <p role="alert" style={{ color: "#b91c1c" }}>
-          {error}
+    <div className="page stack">
+      <header>
+        <h1>Scores</h1>
+        <p className="muted">
+          Wins are counted from completed games. Users with zero wins are
+          omitted. Ties are broken alphabetically by username.
         </p>
-      ) : null}
-      {!loading && !error && rows.length === 0 ? (
-        <p style={{ color: "#64748b" }}>No wins recorded yet.</p>
-      ) : null}
-      {!loading && rows.length > 0 ? (
-        <table
-          style={{
-            borderCollapse: "collapse",
-            marginTop: "0.75rem",
-            minWidth: "16rem",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  textAlign: "left",
-                  borderBottom: "2px solid #cbd5e1",
-                  padding: "0.35rem 0.75rem 0.35rem 0",
-                }}
-              >
-                User
-              </th>
-              <th
-                style={{
-                  textAlign: "right",
-                  borderBottom: "2px solid #cbd5e1",
-                  padding: "0.35rem 0 0.35rem 0.75rem",
-                }}
-              >
-                Wins
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.username}>
-                <td
-                  style={{
-                    borderBottom: "1px solid #e2e8f0",
-                    padding: "0.45rem 0.75rem 0.45rem 0",
-                  }}
-                >
-                  {row.username}
-                </td>
-                <td
-                  style={{
-                    textAlign: "right",
-                    borderBottom: "1px solid #e2e8f0",
-                    padding: "0.45rem 0 0.45rem 0.75rem",
-                  }}
-                >
-                  {row.wins}
-                </td>
+      </header>
+
+      {error ? <div className="banner-error">{error}</div> : null}
+
+      {loading ? (
+        <p className="muted">Loading leaderboard…</p>
+      ) : rows.length === 0 ? (
+        <div className="card">
+          <p className="muted" style={{ marginBottom: 0 }}>
+            No wins recorded yet. <Link to="/games">Play a game</Link> and
+            finish a puzzle while logged in.
+          </p>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0 }}>
+          <table className="scores">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Player</th>
+                <th>Wins</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : null}
-    </section>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={row.username}>
+                  <td>{i + 1}</td>
+                  <td>{row.username}</td>
+                  <td>{row.wins}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
