@@ -47,6 +47,7 @@ export const api = {
   deleteGame: (gameId) =>
     request(`/api/sudoku/${gameId}`, { method: "DELETE" }),
   listHighscores: () => request("/api/highscore"),
+  listWinCounts: () => request("/api/highscore/leaderboard/wins"),
   postHighscore: (body) =>
     request("/api/highscore", { method: "POST", body: JSON.stringify(body) }),
   getHighscoreForGame: (gameId) => request(`/api/highscore/${gameId}`),
