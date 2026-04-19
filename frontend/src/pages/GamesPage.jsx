@@ -60,7 +60,7 @@ export function GamesPage() {
       </p>
 
       {!isLoggedIn ? (
-        <div className="banner-info" style={{ maxWidth: "52ch" }}>
+        <div className="banner-info">
           You can browse puzzles, but you need to{" "}
           <Link to="/login">log in</Link> to create a game or save moves.
         </div>

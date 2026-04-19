@@ -593,6 +593,15 @@ a.btn-secondary:hover {
   font-size: 0.9rem;
 }
 
+/* Center full-width banners on centered pages (not play layout). */
+.page:not(.page-game) .banner-info,
+.page:not(.page-game) .banner-error {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  max-width: 52ch;
+}
+
 .banner-success {
   padding: 0.65rem 0.85rem;
   border-radius: 8px;
