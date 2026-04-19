@@ -406,22 +406,63 @@ a:hover {
   margin-bottom: 1rem;
 }
 
+/* Card: stay a fixed column; do not stretch to full .page width in flex layout */
 .page-auth .card {
-  width: 100%;
+  align-self: center;
+  width: min(22rem, calc(100% - 2rem));
   max-width: 22rem;
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .page-auth .form-p2 {
-  margin-left: auto;
-  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   width: 100%;
-  text-align: left;
+  max-width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.page-auth .form-p2 .field-p2 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  text-align: center;
+}
+
+.page-auth .form-p2 .label-p2 {
+  text-align: center;
+}
+
+.page-auth .form-p2 .input-p2 {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.page-auth .form-p2 .banner-error {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .page-auth .form-p2 .btn-primary {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .page-auth .muted:last-child {
@@ -447,7 +488,7 @@ a:hover {
 }
 
 .page.page-auth .card {
-  width: 100%;
+  width: min(22rem, calc(100% - 2rem));
   max-width: 22rem;
 }
 
@@ -591,6 +632,13 @@ a.btn-secondary:hover {
   border: 1px solid #bfdbfe;
   color: #1e40af;
   font-size: 0.9rem;
+}
+
+.banner-info.banner-centered {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .banner-success {
