@@ -1,0 +1,14 @@
+{
+  "name": "iris-zhang-faith-zhang-project3",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build -w frontend",
+    "dev": "npm run build -w frontend && npm run dev -w backend",
+    "start": "npm run start -w backend"
+  }
+}
