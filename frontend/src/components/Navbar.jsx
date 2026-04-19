@@ -1,4 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const linkStyle = ({ isActive }) => ({
   fontWeight: isActive ? 600 : 400,
@@ -6,9 +7,7 @@ const linkStyle = ({ isActive }) => ({
 });
 
 export function Navbar() {
-  // TODO: wire to GET /api/user/isLoggedIn
-  const loggedIn = false;
-  const username = null;
+  const { username, isLoggedIn, logout, loading } = useAuth();
 
   return (
     <header
@@ -41,10 +40,16 @@ export function Navbar() {
           Scores
         </NavLink>
         <span style={{ flex: 1 }} />
-        {loggedIn ? (
+        {loading ? (
+          <span style={{ color: "#64748b" }}>…</span>
+        ) : isLoggedIn ? (
           <>
-            <span style={{ color: "#64748b" }}>Hi, {username}</span>
-            <button type="button">Log out</button>
+            <span style={{ color: "#0f172a", fontWeight: 600 }}>
+              {username}
+            </span>
+            <button type="button" onClick={() => void logout()}>
+              Log out
+            </button>
           </>
         ) : (
           <>

@@ -17,4 +17,13 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ username: 1 });
 
+userSchema.virtual("createdGames", {
+  ref: "Game",
+  localField: "_id",
+  foreignField: "creator",
+});
+
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
+
 export const User = mongoose.model("User", userSchema);
