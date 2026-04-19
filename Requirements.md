@@ -27,7 +27,7 @@ Build a **full-stack Sudoku** application on top of Project 2 concepts: **record
 | MongoDB, Mongoose, security | 20% | ≥2 collections, persistence, session/cookie handling as specified |
 | JavaScript quality | 10% | Small functions, DRY backend helpers, lean React components |
 | Writeup | 10% | Required prompts answered clearly |
-| Bonus | Optional | See §10 |
+| Bonus | Optional | See **§10 — Bonus points** |
 
 ---
 
@@ -188,23 +188,56 @@ You may add supporting routes (e.g., move submission) **if** they remain REST-sh
    - What you’d add with more time
    - Assumptions
    - Time spent
-   - **Bonus completed** + links to relevant code
+   - **Bonus completed** + links to relevant code (see **§10** for each bonus’s proof / behavior expectations)
 
-**Bonus survey (+1):** complete linked Google form; submit screenshot with **date/time** visible and note whose screenshot if paired.
-
-**Early submit (+3):** ≥ **48 hours** before deadline.
+Canvas / course logistics for **survey** and **early submit** are spelled out in **§10** below.
 
 ---
 
-## 10. Optional bonus features (staff may not debug these)
+## 10. Bonus points (optional)
 
-| Bonus | Pts | Summary |
-|-------|-----|---------|
-| AI survey | 1 | Form + proof screenshot |
-| Early submit | 3 | 48h early |
-| Password encryption | 2 | Store hashed passwords |
-| Delete game (UI) | 5 | Creator sees **DELETE** on `/game/{id}`; removes game; **decrements wins** for everyone who completed it |
-| Custom games | 10 | `/custom` empty 9×9 editor → **Submit** → server verifies **uniquely solvable** → create game → redirect `/game/{id}` |
+These items are **not required** for a complete base project. The assignment states that **teaching staff will not help you debug or implement bonus work**—plan extra time and own your design.
+
+**Total (if you did everything below):** up to **21** extra points (1 + 3 + 2 + 5 + 10). Track what you ship in the **writeup** with short descriptions and **links to relevant files or commits**.
+
+### 10.1 AI survey — **+1 pt**
+
+- **What:** Complete the course **AI survey** (Google Form linked in the official assignment PDF / Canvas).
+- **Proof for Canvas:** Submit a **screenshot of the completion screen** that includes your computer’s **date and time**; label the submission as **Project 3** proof. If multiple teammates, indicate **whose** screenshot it is.
+
+### 10.2 Submit early — **+3 pts**
+
+- **What:** Submit the assignment **at least 48 hours before** the stated deadline (per course policy).
+- **Proof:** Follow whatever Canvas / syllabus instructions the instructor gives (often automatic from submission timestamp).
+
+### 10.3 Password encryption — **+2 pts**
+
+- **What:** **Do not store plaintext passwords** in MongoDB. Use a standard one-way hash (e.g. **bcrypt** or **argon2**) and compare on login using the library’s verify/compare API.
+- **Scope:** Base project still needs working register/login; hashing should be transparent to the grader except that stored values are hashes.
+- **Writeup:** Mention the library and where hashing/verification happens (e.g. user model hook or auth service).
+
+### 10.4 Delete game (UI + data consistency) — **+5 pts**
+
+- **What:** On **`/game/{gameId}`**, if the **logged-in user is the creator** of that game, show a **`DELETE`** button.
+- **Behavior:** Deleting removes the game from the system (DB and any lists). **High scores / win counts must stay consistent:** every user who had completed that game should **lose one win** (or equivalent) so aggregates on **`/scores`** and related APIs remain correct.
+- **API:** You already need **`DELETE /api/sudoku/{gameId}`** for grading; wire the UI to the same rules (auth + creator check).
+
+### 10.5 Custom games — **+10 pts**
+
+- **What:** On the game selection page, add **`Create Custom Game`**, navigating to **`/custom`**.
+- **UI:** **9×9** board, **all cells empty** initially; user enters clues to define a puzzle.
+- **Submit:** A **`Submit`** button sends the puzzle to the **backend**, which must verify the puzzle is **valid Sudoku** and has **one and only one** valid solution (**uniquely solvable**). If accepted, **create** the game and **redirect** to **`/game/{gameId}`** for that new game.
+- **Implementation note:** Expects **Project 2–style backtracking** (or equivalent) for generation/verification; keep heavy logic on the server.
+
+### 10.6 Summary table
+
+| Bonus | Points | One-line check |
+|-------|--------|----------------|
+| AI survey | 1 | Form done + dated completion screenshot |
+| Submit early | 3 | ≥48h before deadline |
+| Password encryption | 2 | Hashed passwords at rest |
+| Delete game | 5 | Creator **DELETE** on game page + cascade win/score fixes |
+| Custom games | 10 | `/custom` → server checks unique solution → new game |
 
 ---
 
@@ -264,16 +297,18 @@ Work items are grouped so you can parallelize **frontend**, **backend**, and **i
 - [ ] Add TAs as **GitHub collaborators**; verify live site + cookies on HTTPS.
 - [ ] Record **video**; finalize **writeup**; collect **bonus** evidence if attempted.
 
-### Phase H — Optional bonuses (priority order suggested)
+### Phase H — Optional bonuses (priority order suggested; full spec **§10**)
 
 1. [ ] **Password hashing (+2)** — low risk, high value.
 2. [ ] **Creator DELETE (+5)** — needs cascade rules for wins/high scores.
 3. [ ] **Custom games (+10)** — `/custom` UI + server **unique-solution** verifier (backtracking from P2).
-4. [ ] **AI survey (+1)** + **early submit (+3)** logistics.
+4. [ ] **AI survey (+1)** + **early submit (+3)** — proof and deadline logistics per **§10**.
 
 ---
 
 ## 12. Acceptance checklist (quick pre-submit)
+
+**Base project**
 
 - [ ] All routes exist and match brief paths.
 - [ ] Logged-out browsing matches “see but not interact” rule.
@@ -282,6 +317,13 @@ Work items are grouped so you can parallelize **frontend**, **backend**, and **i
 - [ ] Mongo shows **≥2 collections** with real documents after typical use.
 - [ ] `/scores` ordering + filtering correct.
 - [ ] Deployed URL + repo access + video + writeup ready per Canvas list.
+
+**If claiming bonuses (see §10)**
+
+- [ ] Writeup lists **which bonuses**, with **code links** / file paths and any **screenshots** (survey) required by the assignment.
+- [ ] **Password hashing:** verify login still works; DB shows non-plaintext secrets.
+- [ ] **Delete game:** only creator sees control; wins/scores update correctly after delete.
+- [ ] **Custom game:** `/custom` flow + backend unique-solution check + redirect documented or demo’d in video.
 
 ---
 
