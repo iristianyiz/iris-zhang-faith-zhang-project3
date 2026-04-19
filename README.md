@@ -23,7 +23,7 @@ iris-zhang-faith-zhang-project3/
 │       │   ├── AppLayout.jsx
 │       │   └── Navbar.jsx
 │       └── pages/
-│           ├── HomePage.jsx
+│           ├── HomePage.jsx   # need to hide path
 │           ├── GamesPage.jsx
 │           ├── GamePage.jsx
 │           ├── RulesPage.jsx
