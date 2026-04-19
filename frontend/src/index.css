@@ -386,6 +386,48 @@ a:hover {
   margin-right: auto;
 }
 
+/* Login / register: single centered column */
+.page-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.page-auth .page-title,
+.page-auth > .muted {
+  width: 100%;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-auth > .muted {
+  margin-bottom: 1rem;
+}
+
+.page-auth .card {
+  width: 100%;
+  max-width: 22rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-auth .form-p2 {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  text-align: left;
+}
+
+.page-auth .form-p2 .btn-primary {
+  width: 100%;
+}
+
+.page-auth .muted:last-child {
+  text-align: center;
+}
+
 .muted {
   color: var(--color-muted);
   font-size: 0.95rem;
@@ -402,6 +444,11 @@ a:hover {
 .page .card {
   width: min(900px, 100%);
   margin-top: 0.75rem;
+}
+
+.page.page-auth .card {
+  width: 100%;
+  max-width: 22rem;
 }
 
 .stack {

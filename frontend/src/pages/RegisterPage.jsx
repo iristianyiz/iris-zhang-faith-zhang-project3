@@ -42,9 +42,9 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="container page">
+    <div className="container page page-auth">
       <h1 className="page-title">Register</h1>
-      <p className="muted" style={{ maxWidth: "52ch" }}>
+      <p className="muted">
         After a successful registration, you are signed in with the same
         session cookie as login.
       </p>

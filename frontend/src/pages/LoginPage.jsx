@@ -33,9 +33,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="container page">
+    <div className="container page page-auth">
       <h1 className="page-title">Login</h1>
-      <p className="muted" style={{ maxWidth: "52ch" }}>
+      <p className="muted">
         Your session is stored in an HTTP-only cookie after a successful login.
       </p>
       {isLoggedIn ? (
