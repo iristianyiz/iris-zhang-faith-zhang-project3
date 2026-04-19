@@ -87,3 +87,176 @@ Then open **http://localhost:8000** (or the `PORT` you set).
 ## Related docs
 
 See **`Requirements.md`** for assignment-aligned features, APIs, and task breakdown.
+
+## REST API checklist (contract with graders)
+
+### Users
+
+| Method | Path | Behavior |
+|--------|------|----------|
+| GET | `/api/user/isLoggedIn` | Read cookie; return username or error |
+| POST | `/api/user/login` | Body: `username`, `password`; set cookie on success |
+| POST | `/api/user/register` | Body: `username`, `password`; create user; reject duplicate username; set cookie |
+| POST | `/api/user/logout` | Clear auth cookie(s) |
+
+### Sudoku
+
+| Method | Path | Behavior |
+|--------|------|----------|
+| GET | `/api/sudoku` | List all games: name, id, created date, difficulty |
+| POST | `/api/sudoku` | Body: `EASY` or `NORMAL`; create game; **unique name** = 3 random words from 1000+ word list; return **game id** |
+| DELETE | `/api/sudoku/:gameId` | Delete game (graded; not required in base UI) |
+| PUT | `/api/sudoku/:gameId` | Update game (graded; not required in base UI) |
+
+### High scores
+
+| Method | Path | Behavior |
+|--------|------|----------|
+| GET | `/api/highscore` | Sorted list: users + games (per spec wording—implement as “leaderboard rows” your UI can aggregate into win counts) |
+| POST | `/api/highscore` | Update high score for a specific game |
+| GET | `/api/highscore/:gameId` | High score for one game |
+
+Additional routes are OK if they stay REST-shaped and purposeful.
+
+---
+
+## Page & route map
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Home: title, links to rules + play (likely `/games`) |
+| `/games` | Selection: create easy/normal; list existing games |
+| `/game/:gameId` | Play or view completed + solution |
+| `/rules` | Rules + credits |
+| `/scores` | Wins leaderboard (exclude 0 wins) |
+| `/login` | Login form; disabled submit if blank; redirect `/games` on success |
+| `/register` | Register + verify password; disabled if any blank; duplicate username error |
+
+**Navbar (every page):** Home; login/register **or** logout + stylized username.
+
+---
+### Milestone 1 — MongoDB & domain models
+
+- Connect Mongoose; define **at least two** schemas with clear relationships (e.g. user → games created; game → completion / high score).
+- Decide fields: puzzle vs solution, user progress, difficulty enum, `completedBy` / `completedAt`, unique game name constraint, indexes for list/sort queries.
+
+### Milestone 2 — Session security & user APIs
+
+- `express-session` (or template equivalent) + HTTP-only cookie settings appropriate for prod (secure, sameSite).
+- Implement user routes: register (hash passwords—bcrypt), login, logout, `isLoggedIn`.
+- Centralize auth middleware: “optional user” for read-only views vs “required user” for mutations.
+
+### Milestone 3 — Sudoku generation & CRUD
+
+- Word list (1000+) + name generator; enforce uniqueness (retry on collision).
+- POST create EASY/NORMAL (reuse Project 2 generation rules).
+- GET list for `/games`; PUT/DELETE by id with correct status codes and no accidental side effects on GET.
+
+### Milestone 4 — Gameplay persistence & completion
+
+- Model “current board” updates (PUT may mirror this for graders even if UI uses POST elsewhere—keep PUT idempotent where possible).
+- Detect win; persist completed state; when reloading `/game/:id`, if **this user** already completed **this** game, show solved grid (spec—confirm “this user” vs “anyone” with examples).
+
+### Milestone 5 — High score APIs & aggregation
+
+- POST update path when a game is won (idempotent handling if replay blocked).
+- GET aggregate for `/scores`: win counts per user, sort desc wins, asc username; filter wins > 0.
+- GET `/api/highscore/:gameId` for per-game row if UI needs it.
+
+### Milestone 6 — React app structure & styling
+
+- Router setup for all routes; layout shell with navbar wired to `isLoggedIn`.
+- Design system: typography, colors, spacing; mobile-first layout; minimal raw browser chrome.
+
+### Milestone 7 — Auth pages & client integration
+
+- Login/register validation UX (disabled buttons, password `type="password"`).
+- Handle API errors (duplicate user, bad credentials) without leaking internals.
+
+### Milestone 8 — Games & play pages
+
+- `/games`: create buttons → POST → navigate; list with formatted dates (`Intl` or library).
+- `/game/:id`: board UX from Project 2 minus duplicate reset/new; single reset; respect logged-out read-only mode.
+- Rules + credits; home copy.
+
+### Milestone 9 — Deploy, writeup, rubric pass
+
+- Deploy API + client (Render or chosen host); env vars for DB and session.
+- Record deployed URL in README; final pass on REST verb semantics and grader-only DELETE/PUT.
+- **Writeup** (separate doc per course): architecture, challenges, division of labor if group.
+
+---
+TODO:
+
+### Setup & repo
+
+- [ ] Clone/fork template into this repo (or merge template) and push to GitHub
+- [ ] Document `npm install` / `yarn`, dev commands, and production build
+- [ ] Add `.env.example` and **never** commit secrets
+- [ ] Invite TAs as collaborators; confirm repo visibility
+
+### Database
+
+- [ ] Mongoose connect with graceful failure message in dev
+- [ ] Schema 1 (e.g. User): username unique, password hash, timestamps
+- [ ] Schema 2+ (e.g. Game / Score): refs, indexes, validation
+- [ ] Seed script (optional) for local demos
+
+### Auth & security
+
+- [ ] Password hashing on register; constant-time-safe comparison on login
+- [ ] Session cookie configuration for local vs production
+- [ ] `isLoggedIn` returns consistent JSON shape for the client
+- [ ] Logout clears session server-side and client expectations documented
+
+### Sudoku backend
+
+- [ ] Word list asset (1000+ words) + triple-name generator + uniqueness
+- [ ] POST `/api/sudoku` difficulty validation; return `{ gameId }` (or agreed shape)
+- [ ] GET `/api/sudoku` returns fields required for list UI
+- [ ] PUT `/api/sudoku/:id` updates stored game state correctly
+- [ ] DELETE `/api/sudoku/:id` removes game; 404 if missing
+
+### High scores
+
+- [ ] Design: one document per game vs per user—justify in writeup
+- [ ] POST `/api/highscore` validates game + user context
+- [ ] GET `/api/highscore` sorted for UI needs
+- [ ] GET `/api/highscore/:gameId` implemented and tested
+
+### Frontend — global
+
+- [ ] React Router routes for all pages
+- [ ] Navbar: conditional auth controls + username treatment
+- [ ] Shared layout, fonts, theme, responsive breakpoints
+- [ ] API helper layer (fetch wrapper: credentials, JSON errors)
+
+### Frontend — pages
+
+- [ ] `/` Home: title + navigation to rules + play
+- [ ] `/rules` rules text + credits with outbound links
+- [ ] `/login` blank-aware disabled submit; success → `/games`
+- [ ] `/register` verify password match + server-side duplicate handling
+- [ ] `/games` create easy/normal + game list + navigation
+- [ ] `/game/:gameId` play UI; completed+solution path; bottom reset only
+- [ ] `/scores` sorted table/list; omit 0-win users
+
+### Logged-out behavior
+
+- [ ] Audit each page: which controls are disabled vs hidden when anonymous
+- [ ] Ensure API rejects unauthorized mutations with 401/403 consistently
+
+### Deployment & submission
+
+- [ ] Production Mongo (Atlas) wired
+- [ ] Deploy client + server; CORS/cookie domain/sameSite verified on HTTPS
+- [ ] README section: **live URL**, how to run locally, API overview
+- [ ] Writeup PDF/doc per instructor format
+- [ ] Final rubric self-check: REST verbs, 2+ collections, pages, styling, JS quality
+
+### Bonus (optional)
+
+- [ ] Extra UX polish (animations, toasts, undo stack)
+- [ ] Admin tool or script using DELETE endpoint
+
+---
