@@ -19,15 +19,16 @@ export function RegisterPage() {
     trimmedUser.length === 0 ||
     password.length === 0 ||
     password2.length === 0;
-  const canSubmit = !anyBlank && passwordsMatch && !submitting;
+  /** Spec: disable only while any field is blank; mismatch handled on submit. */
+  const canSubmit = !anyBlank && !submitting;
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!canSubmit) return;
     if (!passwordsMatch) {
       setError("Passwords do not match.");
       return;
     }
-    if (!canSubmit) return;
     setError(null);
     setSubmitting(true);
     try {

@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export function HomePage() {
+  const { isLoggedIn, username } = useAuth();
+
   return (
     <div className="page">
       <section className="hero">
@@ -29,9 +32,19 @@ export function HomePage() {
             <Link to="/scores">Win leaderboard</Link>
           </li>
           <li>
-            <Link to="/login">Log in</Link> or{" "}
-            <Link to="/register">create an account</Link> to play and save
-            progress.
+            {isLoggedIn ? (
+              <>
+                Signed in as <strong>{username}</strong>. Use{" "}
+                <Link to="/games">Games</Link> to play; your session uses the
+                same cookie as the rest of the app.
+              </>
+            ) : (
+              <>
+                <Link to="/login">Log in</Link> or{" "}
+                <Link to="/register">create an account</Link> to play and save
+                progress.
+              </>
+            )}
           </li>
         </ul>
       </section>
