@@ -2,6 +2,29 @@
 
 Monorepo: **Vite + React** (`frontend/`), **Express + Mongoose** (`backend/`), orchestrated from the **root** `package.json`.
 
+## From Project 2 (responsive client) → Project 3 (full-stack)
+
+*Project 2 repo (Northeastern GitHub, SSO):* [iris-zhang-faith-zhang-project2](https://github.khoury.northeastern.edu/iriszhang/iris-zhang-faith-zhang-project2)
+
+Your **Project 2** was a **single-page React** Sudoku app (React Router + Context): responsive **home** (title, pitch, CTAs to play vs rules, chessboard-style graphic), **game selection** with a **mocked list** and fake authors, **Easy (6×6)** vs **Normal (9×9)** with a **new client-side puzzle each visit**, **locked givens**, digits **1–N**, clearable cells, **invalid-value highlighting**, **timer**, **Reset** (restore puzzle + restart timer), **New Game** (fresh board), **rules + credits**, **mock high scores**, **login/register** UI (obscured passwords), **navbar on every page** with a **small-screen menu toggle**, and shared styling. Bonuses included **Hint** (highlight a cell with exactly one legal candidate), **localStorage** resume/clear-on-win/reset via Context only, and a **backtracking generator** aimed at **unique** solutions.
+
+**Project 3** keeps the **spirit of the play experience** (board, reset, completion, rules, nav, auth) but changes the **architecture and rules of the road**:
+
+| Project 2 | Project 3 |
+|-----------|-----------|
+| Mock game list, local routing to “a” puzzle | **Persisted games** in MongoDB; **`GET /api/sudoku`** list; each row has a real **`gameId`**, creator, created date |
+| New puzzle every time you open a route | **One stored puzzle per game**; reopening **`/game/:gameId`** loads the **same** saved state from the server |
+| Easy **6×6** vs Normal **9×9** (Project 2) | **`EASY`** → **6×6** (2×3 blocks, digits **1–6**); **`NORMAL`** → **9×9** (3×3 blocks, digits **1–9**). See `backend/utils/sudoku.js` **`DIFFICULTY_LAYOUT`**. |
+| Timer + localStorage in Context | **Elapsed time** can still be shown in the UI; **persistence** of the board is **`PUT /api/sudoku/:gameId`** (source of truth). localStorage is **optional** (e.g. draft cache), not required for grading |
+| Mock high scores | **`GET /api/highscore/leaderboard/wins`** (and related APIs) backed by MongoDB |
+| Client-only “win” | **Server** checks completion against the stored **solution**; **`POST /api/highscore`** records time after a win |
+| New Game + Reset on play page | **No second “New Game”** on **`/game/:id`**; create games from **`/games`** only. **Single Reset** for the **current** game (server **`reset: true`**) |
+| Logged-in assumed for play | **Logged-out users** may **view** pages and boards but **must not mutate** (read-only UI; APIs return **401** for mutations) |
+
+**Parity with your Project 2 (implemented here):** **6×6 Easy** vs **9×9 Normal**, **red conflict highlights** on the board (same idea as P2), **collapsible nav on small screens** (Menu / Close). **Still optional / not wired in this repo:** **Hint** button, visible **timer** UI (elapsed is still sent to **`POST /api/highscore`** after a win), home **chessboard-style graphic**, **localStorage** draft cache, and stricter **unique-solution** dig-holes on the server—add and document in the writeup if you ship them.
+
+---
+
 ## Repository layout
 
 ```
@@ -19,11 +42,18 @@ iris-zhang-faith-zhang-project3/
 │       ├── index.css
 │       ├── api/
 │       │   └── client.js        # fetch helpers (credentials: include)
+│       ├── context/
+│       │   └── AuthContext.jsx
 │       ├── components/
 │       │   ├── AppLayout.jsx
-│       │   └── Navbar.jsx
+│       │   ├── Navbar.jsx
+│       │   └── SudokuBoard.jsx
+│       ├── utils/
+│       │   ├── apiError.js
+│       │   ├── formatDate.js
+│       │   └── sudokuValidate.js
 │       └── pages/
-│           ├── HomePage.jsx   # need to hide path
+│           ├── HomePage.jsx
 │           ├── GamesPage.jsx
 │           ├── GamePage.jsx
 │           ├── RulesPage.jsx
@@ -36,7 +66,8 @@ iris-zhang-faith-zhang-project3/
     ├── server.js                # /api/* + static frontend/dist + SPA fallback
     ├── models/
     │   ├── User.js
-    │   └── Game.js
+    │   ├── Game.js
+    │   └── HighScore.js
     └── routes/
         ├── userRoutes.js
         ├── sudokuRoutes.js
@@ -112,7 +143,8 @@ See **`Requirements.md`** for assignment-aligned features, APIs, and task breakd
 
 | Method | Path | Behavior |
 |--------|------|----------|
-| GET | `/api/highscore` | Sorted list: users + games (per spec wording—implement as “leaderboard rows” your UI can aggregate into win counts) |
+| GET | `/api/highscore` | Sorted “username + game” rows (per-time leaderboard shape) |
+| GET | `/api/highscore/leaderboard/wins` | Win counts for **`/scores`** (wins desc, username asc; omit 0 wins) |
 | POST | `/api/highscore` | Update high score for a specific game |
 | GET | `/api/highscore/:gameId` | High score for one game |
 
@@ -149,7 +181,7 @@ Additional routes are OK if they stay REST-shaped and purposeful.
 ### Milestone 3 — Sudoku generation & CRUD
 
 - Word list (1000+) + name generator; enforce uniqueness (retry on collision).
-- POST create EASY/NORMAL (reuse Project 2 generation rules).
+- POST create **EASY** / **NORMAL**: server-side **6×6** (Easy) vs **9×9** (Normal), backtracking fill + controlled removals per `DIFFICULTY_LAYOUT`.
 - GET list for `/games`; PUT/DELETE by id with correct status codes and no accidental side effects on GET.
 
 ### Milestone 4 — Gameplay persistence & completion
@@ -176,7 +208,8 @@ Additional routes are OK if they stay REST-shaped and purposeful.
 ### Milestone 8 — Games & play pages
 
 - `/games`: create buttons → POST → navigate; list with formatted dates (`Intl` or library).
-- `/game/:id`: board UX from Project 2 minus duplicate reset/new; single reset; respect logged-out read-only mode.
+- `/game/:id`: board UX **inherited from P2 ideas** (locked givens, 1–9 entry, clear) **minus** the extra **“New Game”** control; **one Reset** tied to server state; **logged-out read-only** mode.
+- **Optional P2-style polish:** visible **timer** display, **Hint**, decorative home graphic, **localStorage** cache—document if implemented.
 - Rules + credits; home copy.
 
 ### Milestone 9 — Deploy, writeup, rubric pass

@@ -50,30 +50,30 @@ export function GamesPage() {
   }
 
   return (
-    <div className="page stack">
-      <header>
-        <h1>Games</h1>
-        <p className="muted">
-          Create a new puzzle or open one you have already started. Dates use
-          your browser locale.
-        </p>
-      </header>
+    <div className="container page">
+      <h1 className="page-title">Select a Game</h1>
+      <p className="muted" style={{ maxWidth: "52ch" }}>
+        <strong>Easy</strong> is <strong>6×6</strong> (digits 1–6).{" "}
+        <strong>Normal</strong> is <strong>9×9</strong> (digits 1–9). Create a
+        new saved game or continue one from the list. Dates use your browser
+        locale.
+      </p>
 
       {!isLoggedIn ? (
-        <div className="banner-info">
+        <div className="banner-info" style={{ maxWidth: "52ch" }}>
           You can browse puzzles, but you need to{" "}
           <Link to="/login">log in</Link> to create a game or save moves.
         </div>
       ) : null}
 
-      <div className="row">
+      <div className="cta-row">
         <button
           type="button"
           className="btn btn-primary"
           disabled={!isLoggedIn || busy !== null}
           onClick={() => void create("NORMAL")}
         >
-          {busy === "NORMAL" ? "Creating…" : "Create normal game"}
+          {busy === "NORMAL" ? "Creating…" : "Create normal game (9×9)"}
         </button>
         <button
           type="button"
@@ -81,37 +81,51 @@ export function GamesPage() {
           disabled={!isLoggedIn || busy !== null}
           onClick={() => void create("EASY")}
         >
-          {busy === "EASY" ? "Creating…" : "Create easy game"}
+          {busy === "EASY" ? "Creating…" : "Create easy game (6×6)"}
         </button>
       </div>
 
       {error ? <div className="banner-error">{error}</div> : null}
 
-      <section className="card stack">
+      <div className="card stack" style={{ marginTop: "1rem", textAlign: "left" }}>
         <h2 style={{ marginTop: 0 }}>All games</h2>
         {loading ? (
-          <p className="muted">Loading games…</p>
+          <p className="muted" style={{ marginBottom: 0 }}>
+            Loading games…
+          </p>
         ) : games.length === 0 ? (
-          <p className="muted">No games yet. Create one to get started.</p>
+          <p className="muted" style={{ marginBottom: 0 }}>
+            No games yet. Create one to get started.
+          </p>
         ) : (
-          <ul className="game-list">
+          <ul className="list-p2">
             {games.map((g) => (
-              <li key={g.id}>
-                <Link to={`/game/${g.id}`}>
-                  <strong>{g.name}</strong>{" "}
-                  <span className="tag">{g.difficulty}</span>
-                  <div className="meta">
-                    {formatGameDate(g.createdAt)}
-                    {g.creatorUsername ? (
-                      <> · by {g.creatorUsername}</>
+              <li key={g.id} className="list-item-p2">
+                <div>
+                  <Link to={`/game/${g.id}`}>
+                    <strong>{g.name}</strong>
+                  </Link>
+                  <div className="muted" style={{ marginTop: "0.25rem" }}>
+                    <span className="tag">{g.difficulty}</span>
+                    {g.boardSize ? (
+                      <>
+                        {" "}
+                        ({g.boardSize}×{g.boardSize})
+                      </>
                     ) : null}
+                    {" · "}
+                    {formatGameDate(g.createdAt)}
+                    {g.creatorUsername ? <> · by {g.creatorUsername}</> : null}
                   </div>
+                </div>
+                <Link className="btn btn-primary btn-small" to={`/game/${g.id}`}>
+                  Play
                 </Link>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </div>
     </div>
   );
 }

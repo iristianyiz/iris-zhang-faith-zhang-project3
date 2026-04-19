@@ -27,14 +27,12 @@ export function ScoresPage() {
   }, [load]);
 
   return (
-    <div className="page stack">
-      <header>
-        <h1>Scores</h1>
-        <p className="muted">
-          Wins are counted from completed games. Users with zero wins are
-          omitted. Ties are broken alphabetically by username.
-        </p>
-      </header>
+    <div className="container page">
+      <h1 className="page-title">High Scores</h1>
+      <p className="muted" style={{ maxWidth: "52ch" }}>
+        Wins come from games you completed while logged in. Users with zero wins
+        are hidden. Ties are broken alphabetically by username.
+      </p>
 
       {error ? <div className="banner-error">{error}</div> : null}
 
@@ -49,12 +47,12 @@ export function ScoresPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 0 }}>
-          <table className="scores">
+          <table className="table-p2">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Player</th>
-                <th>Wins</th>
+                <th>User</th>
+                <th>Sudokus completed</th>
               </tr>
             </thead>
             <tbody>

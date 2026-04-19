@@ -21,11 +21,16 @@ export function AppLayout() {
   }, [refresh]);
 
   return (
-    <>
+    <div className="app-shell">
       <Navbar />
-      <main className="layout-main">
+      <main className="app-main">
         <Outlet />
       </main>
-    </>
+      <footer className="app-footer">
+        <div className="container">
+          © {new Date().getFullYear()} Sudoku Master. All rights reserved.
+        </div>
+      </footer>
+    </div>
   );
 }

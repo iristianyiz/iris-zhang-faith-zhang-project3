@@ -5,49 +5,56 @@ export function HomePage() {
   const { isLoggedIn, username } = useAuth();
 
   return (
-    <div className="page">
+    <div className="container page">
       <section className="hero">
-        <h1>Sudoku</h1>
-        <p className="muted">
-          Play classic 9×9 puzzles, track your wins on the leaderboard, and
-          pick up where you left off—saved on the server when you are signed
-          in.
+        <h1>Sudoku Master</h1>
+        <p>
+          Challenge your mind with the classic number puzzle—now backed by a
+          server so you can save games, compete on wins, and pick up where you
+          left off when signed in.
         </p>
-        <div className="hero-actions">
-          <Link to="/games" className="btn btn-primary">
-            Play
+        <div className="cta-row">
+          <Link className="btn btn-primary" to="/games">
+            Start Playing
           </Link>
-          <Link to="/rules" className="btn btn-secondary">
-            How to play
+          <Link className="btn btn-secondary" to="/rules">
+            Learn the Rules
           </Link>
         </div>
+        <div className="home-art" aria-hidden="true">
+          <img className="home-art-img" src="/chessboard.svg" alt="" />
+        </div>
       </section>
-      <section className="card stack" style={{ marginTop: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Quick links</h2>
-        <ul className="credits-list">
+
+      <div className="card stack" style={{ marginTop: "1.5rem" }}>
+        <h2 className="page-title" style={{ marginTop: 0, marginBottom: 0 }}>
+          Quick start
+        </h2>
+        <ul className="credits-list" style={{ textAlign: "left" }}>
           <li>
-            <Link to="/games">Browse and create games</Link>
+            <Link to="/games">Open the game list</Link> to create a{" "}
+            <strong>6×6 Easy</strong> or <strong>9×9 Normal</strong> puzzle.
           </li>
           <li>
-            <Link to="/scores">Win leaderboard</Link>
+            <Link to="/scores">High Scores</Link> ranks players by completed
+            wins.
           </li>
           <li>
             {isLoggedIn ? (
               <>
-                Signed in as <strong>{username}</strong>. Use{" "}
-                <Link to="/games">Games</Link> to play; your session uses the
-                same cookie as the rest of the app.
+                Signed in as <strong>{username}</strong>. Your board updates
+                save to the server automatically.
               </>
             ) : (
               <>
                 <Link to="/login">Log in</Link> or{" "}
-                <Link to="/register">create an account</Link> to play and save
-                progress.
+                <Link to="/register">register</Link> to play interactively;
+                logged-out visitors can still browse in read-only mode.
               </>
             )}
           </li>
         </ul>
-      </section>
+      </div>
     </div>
   );
 }

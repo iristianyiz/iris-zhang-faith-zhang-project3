@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import { SudokuBoard } from "../components/SudokuBoard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { getApiErrorMessage } from "../utils/apiError.js";
 import { formatGameDate } from "../utils/formatDate.js";
+import { conflictGrid } from "../utils/sudokuValidate.js";
 
 export function GamePage() {
   const { gameId } = useParams();
@@ -55,6 +56,21 @@ export function GamePage() {
   }, [loadGame]);
 
   const readOnly = !isLoggedIn || Boolean(game?.completed);
+
+  const layout = useMemo(() => {
+    if (!game?.initialBoard) {
+      return { size: 9, boxRows: 3, boxCols: 3 };
+    }
+    const size = game.boardSize ?? game.initialBoard.length;
+    const boxRows = game.boxRows ?? (size === 6 ? 2 : 3);
+    const boxCols = game.boxCols ?? (size === 6 ? 3 : 3);
+    return { size, boxRows, boxCols };
+  }, [game]);
+
+  const invalidGrid = useMemo(() => {
+    if (!board || readOnly) return null;
+    return conflictGrid(board, layout.boxRows, layout.boxCols);
+  }, [board, layout.boxRows, layout.boxCols, readOnly]);
 
   const flushSave = useCallback(
     async (grid) => {
@@ -128,7 +144,7 @@ export function GamePage() {
   );
 
   return (
-    <div className="page stack">
+    <div className="container page page-game stack">
       <p>
         <Link to="/games">← All games</Link>
       </p>
@@ -142,6 +158,8 @@ export function GamePage() {
             <h1 style={{ marginBottom: "0.35rem" }}>{game.name}</h1>
             <p className="muted" style={{ marginBottom: 0 }}>
               <span className="tag">{game.difficulty}</span>
+              {" · "}
+              {layout.size}×{layout.size}
               {" · "}
               {formatGameDate(game.createdAt)}
               {game.creatorUsername ? <> · by {game.creatorUsername}</> : null}
@@ -170,12 +188,17 @@ export function GamePage() {
 
           {saveError ? <div className="banner-error">{saveError}</div> : null}
 
-          <div className="sudoku-wrap">
+          <div
+            className={`sudoku-wrap${layout.size === 6 ? " is-mini" : ""}`}
+          >
             <SudokuBoard
               initialBoard={game.initialBoard}
               currentBoard={board}
               onCellChange={handleCellChange}
               readOnly={readOnly}
+              boxRows={layout.boxRows}
+              boxCols={layout.boxCols}
+              invalidGrid={invalidGrid}
             />
           </div>
 

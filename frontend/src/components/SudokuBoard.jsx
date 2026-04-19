@@ -1,8 +1,21 @@
 /**
- * 9×9 board: 0 = empty in data; displayed as blank.
- * Clues (initial !== 0) cannot be edited when the board is interactive.
+ * Square Sudoku board: 0 = empty. Clues (initial !== 0) stay locked when interactive.
+ * @param {{ boxRows?: number, boxCols?: number, invalidGrid?: boolean[][] | null }} props
  */
-export function SudokuBoard({ initialBoard, currentBoard, onCellChange, readOnly }) {
+export function SudokuBoard({
+  initialBoard,
+  currentBoard,
+  onCellChange,
+  readOnly,
+  boxRows: boxRowsProp,
+  boxCols: boxColsProp,
+  invalidGrid = null,
+}) {
+  const size = currentBoard.length;
+  const boxRows = boxRowsProp ?? (size === 6 ? 2 : 3);
+  const boxCols = boxColsProp ?? (size === 6 ? 3 : 3);
+  const maxDigit = size;
+
   const handleInput = (row, col, raw) => {
     if (readOnly) return;
     const g = initialBoard[row][col];
@@ -13,7 +26,7 @@ export function SudokuBoard({ initialBoard, currentBoard, onCellChange, readOnly
       return;
     }
     const n = Number(v);
-    if (n >= 1 && n <= 9) {
+    if (n >= 1 && n <= maxDigit) {
       onCellChange(row, col, n);
     }
   };
@@ -21,13 +34,15 @@ export function SudokuBoard({ initialBoard, currentBoard, onCellChange, readOnly
   return (
     <div
       className="sudoku-board"
+      style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
       role="grid"
-      aria-label="Sudoku puzzle grid"
+      aria-label={`Sudoku grid ${size} by ${size}`}
     >
       {currentBoard.map((row, r) =>
         row.map((value, c) => {
           const given = initialBoard[r][c] !== 0;
           const locked = readOnly || given;
+          const conflict = invalidGrid?.[r]?.[c] ?? false;
 
           return (
             <div
@@ -36,10 +51,11 @@ export function SudokuBoard({ initialBoard, currentBoard, onCellChange, readOnly
                 "sudoku-cell-wrap",
                 given ? "is-given" : "",
                 locked && !given ? "is-readonly" : "",
-                r % 3 === 0 ? "thick-top" : "",
-                c % 3 === 0 ? "thick-left" : "",
-                c === 8 ? "thick-right" : "",
-                r === 8 ? "thick-bottom" : "",
+                conflict ? "is-conflict" : "",
+                r % boxRows === 0 ? "thick-top" : "",
+                c % boxCols === 0 ? "thick-left" : "",
+                c === size - 1 ? "thick-right" : "",
+                r === size - 1 ? "thick-bottom" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}

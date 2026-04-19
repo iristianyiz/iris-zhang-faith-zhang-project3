@@ -5,7 +5,7 @@ import { HighScore } from "../models/HighScore.js";
 import { optionalAuth, requireAuth } from "../middleware/auth.js";
 import { generateRandomGameName } from "../utils/gameName.js";
 import {
-  CELLS_TO_REMOVE,
+  DIFFICULTY_LAYOUT,
   generateSolvedGrid,
   givensPreserved,
   isValidGridShape,
@@ -17,10 +17,14 @@ export const sudokuRouter = Router();
 sudokuRouter.use(optionalAuth);
 
 function serializeListItem(game) {
+  const boardSize = Array.isArray(game.initialBoard)
+    ? game.initialBoard.length
+    : 9;
   return {
     id: game._id.toString(),
     name: game.name,
     difficulty: game.difficulty,
+    boardSize,
     createdAt: game.createdAt,
     creatorUsername: game.creator?.username ?? null,
   };
@@ -33,10 +37,19 @@ function serializeGameDetail(game, viewerUserId) {
     game.completedBy &&
     game.completedBy._id.equals(viewerUserId);
 
+  const boardSize = Array.isArray(game.initialBoard)
+    ? game.initialBoard.length
+    : 9;
+  const boxRows = boardSize === 6 ? 2 : 3;
+  const boxCols = boardSize === 6 ? 3 : 3;
+
   return {
     id: game._id.toString(),
     name: game.name,
     difficulty: game.difficulty,
+    boardSize,
+    boxRows,
+    boxCols,
     createdAt: game.createdAt,
     creatorUsername: game.creator?.username ?? null,
     completed,
@@ -65,9 +78,13 @@ sudokuRouter.post("/", requireAuth, async (req, res) => {
     res.status(400).json({ error: "difficulty must be EASY or NORMAL" });
     return;
   }
-  const cellsToRemove = CELLS_TO_REMOVE[difficulty];
-  const solution = generateSolvedGrid();
-  const { puzzle } = makePuzzleFromSolution(solution, cellsToRemove);
+  const layout = DIFFICULTY_LAYOUT[difficulty];
+  const solution = generateSolvedGrid(layout);
+  const { puzzle } = makePuzzleFromSolution(
+    solution,
+    layout.cellsToRemove,
+    layout.size,
+  );
 
   for (let attempt = 0; attempt < 50; attempt++) {
     const name = generateRandomGameName();
@@ -140,8 +157,12 @@ sudokuRouter.put("/:gameId", requireAuth, async (req, res) => {
   }
 
   const board = req.body?.currentBoard;
-  if (!isValidGridShape(board)) {
-    res.status(400).json({ error: "currentBoard must be a 9x9 grid of 0–9" });
+  const size = game.initialBoard.length;
+  const maxDigit = size;
+  if (!isValidGridShape(board, size, maxDigit)) {
+    res.status(400).json({
+      error: `currentBoard must be a ${size}×${size} grid with values 0–${maxDigit}`,
+    });
     return;
   }
   if (!givensPreserved(board, game.initialBoard)) {

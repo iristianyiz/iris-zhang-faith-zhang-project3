@@ -33,9 +33,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="page page-narrow">
-      <h1>Log in</h1>
-      <p className="muted">
+    <div className="container page">
+      <h1 className="page-title">Login</h1>
+      <p className="muted" style={{ maxWidth: "52ch" }}>
         Your session is stored in an HTTP-only cookie after a successful login.
       </p>
       {isLoggedIn ? (
@@ -43,36 +43,41 @@ export function LoginPage() {
           You are already signed in. <Link to="/games">Go to games</Link>
         </p>
       ) : (
-        <form className="card stack" onSubmit={handleSubmit} noValidate>
-          {error ? <div className="banner-error">{error}</div> : null}
-          <div className="form-field">
-            <label htmlFor="login-username">Username</label>
-            <input
-              id="login-username"
-              name="username"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-            {submitting ? "Signing in…" : "Log in"}
-          </button>
-          <p className="muted" style={{ marginBottom: 0 }}>
-            No account? <Link to="/register">Register</Link>
-          </p>
-        </form>
+        <div className="card">
+          <form className="form-p2" onSubmit={handleSubmit} noValidate>
+            {error ? <div className="banner-error">{error}</div> : null}
+            <label className="field-p2">
+              <div className="label-p2">Username</div>
+              <input
+                className="input-p2"
+                id="login-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </label>
+            <label className="field-p2">
+              <div className="label-p2">Password</div>
+              <input
+                className="input-p2"
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+              {submitting ? "Signing in…" : "Submit"}
+            </button>
+            <p className="muted" style={{ marginBottom: 0 }}>
+              No account? <Link to="/register">Register</Link>
+            </p>
+          </form>
+        </div>
       )}
     </div>
   );

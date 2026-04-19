@@ -19,7 +19,6 @@ export function RegisterPage() {
     trimmedUser.length === 0 ||
     password.length === 0 ||
     password2.length === 0;
-  /** Spec: disable only while any field is blank; mismatch handled on submit. */
   const canSubmit = !anyBlank && !submitting;
 
   async function handleSubmit(e) {
@@ -43,10 +42,10 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="page page-narrow">
-      <h1>Register</h1>
-      <p className="muted">
-        After a successful registration, you are signed in using the same
+    <div className="container page">
+      <h1 className="page-title">Register</h1>
+      <p className="muted" style={{ maxWidth: "52ch" }}>
+        After a successful registration, you are signed in with the same
         session cookie as login.
       </p>
       {isLoggedIn ? (
@@ -54,50 +53,56 @@ export function RegisterPage() {
           You are already signed in. <Link to="/games">Go to games</Link>
         </p>
       ) : (
-        <form className="card stack" onSubmit={handleSubmit} noValidate>
-          {error ? <div className="banner-error">{error}</div> : null}
-          {!anyBlank && !passwordsMatch ? (
-            <div className="banner-error">Passwords do not match.</div>
-          ) : null}
-          <div className="form-field">
-            <label htmlFor="reg-username">Username</label>
-            <input
-              id="reg-username"
-              name="username"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="reg-password">Password</label>
-            <input
-              id="reg-password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="reg-password2">Verify password</label>
-            <input
-              id="reg-password2"
-              name="password2"
-              type="password"
-              autoComplete="new-password"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-            {submitting ? "Creating account…" : "Create account"}
-          </button>
-          <p className="muted" style={{ marginBottom: 0 }}>
-            Already have an account? <Link to="/login">Log in</Link>
-          </p>
-        </form>
+        <div className="card">
+          <form className="form-p2" onSubmit={handleSubmit} noValidate>
+            {error ? <div className="banner-error">{error}</div> : null}
+            {!anyBlank && !passwordsMatch ? (
+              <div className="banner-error">Passwords do not match.</div>
+            ) : null}
+            <label className="field-p2">
+              <div className="label-p2">Username</div>
+              <input
+                className="input-p2"
+                id="reg-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </label>
+            <label className="field-p2">
+              <div className="label-p2">Password</div>
+              <input
+                className="input-p2"
+                id="reg-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <label className="field-p2">
+              <div className="label-p2">Verify password</div>
+              <input
+                className="input-p2"
+                id="reg-password2"
+                name="password2"
+                type="password"
+                autoComplete="new-password"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+              />
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+              {submitting ? "Creating account…" : "Submit"}
+            </button>
+            <p className="muted" style={{ marginBottom: 0 }}>
+              Already have an account? <Link to="/login">Log in</Link>
+            </p>
+          </form>
+        </div>
       )}
     </div>
   );

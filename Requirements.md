@@ -10,6 +10,24 @@ This document captures **requirements**, a **proposed design**, and **task lists
 
 Build a **full-stack Sudoku** application on top of Project 2 concepts: **record behavior**, **high scores**, **auth via cookies**, **MongoDB + Mongoose**, and **RESTful Express APIs**. Users can browse the app when logged out (read-only where specified) and get full interaction when logged in.
 
+### 1.1 How this repo maps your Project 2 (responsive Sudoku)
+
+Your **Project 2** write-up describes a **client-only** app: **React + React Router + Context**, a responsive **home** (title, pitch, CTAs to play vs rules, decorative chessboard-style graphic), a **game list** that was **mocked** (titles + fake authors) routing into **Easy (6×6)** or **Normal (9×9)** modes where **each visit** could **generate a new puzzle**, **locked givens**, digits **1–N**, **clear**, **invalid cell highlighting**, **timer**, **Reset** (restore puzzle + restart timer), **New Game** (fresh board), **rules + credits**, **mock high scores**, **login/register** fields with **obscured passwords**, a **global navbar** (with a **small-screen menu toggle**), and consistent styling. Bonuses included **Hint** (single-candidate empty cell), **localStorage** persistence cleared on win/reset, and a **backtracking** generator emphasizing **unique** solutions.
+
+**Project 3** is not “throw away P2”—it **replaces mock boundaries with real ones**:
+
+| P2 behavior | P3 expectation in this assignment |
+|-------------|-------------------------------------|
+| Mock games + authors | **Mongo-backed games**: create with **`POST /api/sudoku`**, list with **`GET /api/sudoku`**, stable **`/game/:gameId`** |
+| New board when revisiting a route | **Same saved game** until deleted; progress and completion are **persisted** (`PUT` updates `currentBoard`; win is **validated server-side**) |
+| 6×6 Easy vs 9×9 Normal | **`EASY`** → **6×6** (2×3 blocks, digits 1–6); **`NORMAL`** → **9×9** (3×3 blocks, digits 1–9). Layout and clue counts: `backend/utils/sudoku.js` **`DIFFICULTY_LAYOUT`**. |
+| Client decides “win” | **Server** compares to stored **solution**; then **`POST /api/highscore`** may record elapsed time |
+| Mock leaderboard | **`GET /api/highscore/leaderboard/wins`** (and related routes) for **`/scores`** |
+| New Game + Reset on the play screen | **Only one in-place control on `/game/:id`:** **Reset** (no separate “spawn unrelated puzzle” button). **New games** come from **`/games`** |
+| Timer / localStorage in Context | **Timer** may still be shown for UX and passed as **`elapsedSeconds`**; **authoritative state** is the API + session cookie, not localStorage (optional cache only) |
+
+**Recommended writeup paragraph:** one short section titled “P2 vs P3” listing what you **reused conceptually** (grid UX, validation ideas, generator approach) vs what **moved to the server** (persistence, auth, scores).
+
 **Suggested baseline:** Start from the course template when possible to reduce setup friction:
 
 `https://github.com/ajorgense1-chwy/cs5610_project3_template`
@@ -39,7 +57,7 @@ Build a **full-stack Sudoku** application on top of Project 2 concepts: **record
 |-------|---------|
 | `/` | **Home:** game title (may rename), art/branding, navigation to **rules** and **play** (game entry). |
 | `/games` | **Selection:** “Create Normal Game” and “Create Easy Game” → `POST` build-game API → redirect to `/game/{id}`. List **all** games with **name**, **difficulty**, **creator username**, **created date** formatted like `Jan 1, 2020`. Clicking a list item opens that game. |
-| `/game/{gameId}` | **Play:** Same Sudoku UX as Project 2 for Normal/Easy; **no** bottom “New Game” flow like P2; include a **Reset** control for the current game (assignment text emphasizes reset at bottom—implement reset; omit separate “new random game” if that was P2 wording). If user **already completed** this game, revisiting shows **completed state + solution**. |
+| `/game/{gameId}` | **Play:** Same *interaction style* as Project 2 where it still applies (**locked givens**, digit entry, **clear**, **red conflict cells**, completion feedback)—but **no** bottom **“New Game”** flow; only **Reset** for the **current persisted game**. **Easy = 6×6**, **Normal = 9×9**. If the **logged-in user who completed** this game returns, show **completed state** and allow **solution** visibility per server rules. *(Optional P2 extras: Hint, visible timer, localStorage cache, home graphic—document if you add them.)* |
 | `/rules` | Rules text + **credits** (“made by”) with links (email, GitHub, LinkedIn—**fake data OK**). |
 | `/scores` | **High scores:** all users who have **≥1 win**, ordered **most wins → least**; **ties broken by username**; **hide users with 0 wins**. |
 | `/login` | Username + **password** (`type="password"`), submit **disabled** if either field blank. Success → redirect **`/games`**. Sets auth **cookie**. |
@@ -256,7 +274,7 @@ Work items are grouped so you can parallelize **frontend**, **backend**, and **i
 
 ### Phase B — Sudoku core API (Days 2–4)
 
-- [ ] Port/reuse **Project 2** generation + validation logic to server utilities (pure functions where possible).
+- [ ] Port/reuse **Project 2** ideas (backtracking fill, **6×6 vs 9×9** layouts, client-side conflict hints) into **server utilities** + UI (`DIFFICULTY_LAYOUT`, `sudokuValidate.js`).
 - [ ] Implement **`POST /api/sudoku`** (difficulty param, unique 3-word name with **collision retry** + unique index).
 - [ ] Implement **`GET /api/sudoku`** list projection fields required by UI.
 - [ ] Implement **`PUT /api/sudoku/:id`** for board/progress/completion updates (even if only used by tests or minimal client calls).
@@ -268,6 +286,7 @@ Work items are grouped so you can parallelize **frontend**, **backend**, and **i
 - [ ] Build **`/games`** page: buttons → POST → navigate; list from GET; date formatting **`MMM D, YYYY`**.
 - [ ] Build **`/game/:id`**: load game, enforce **read-only** when logged out; play when logged in.
 - [ ] Remove P2 **“New Game”** flow from bottom; add **Reset** semantics consistent with your server model.
+- [ ] *(Optional P2 parity)* Visible **timer**, **Hint**, decorative home graphic, **localStorage** cache—only if time; mention in writeup.
 - [ ] On completion, persist completion and **trigger high-score update path** as designed.
 - [ ] Revisit completed game: show **finished UI + solution** without allowing cheating on first play (define rules clearly in writeup).
 
