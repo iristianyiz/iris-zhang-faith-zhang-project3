@@ -29,7 +29,7 @@ Both are creator-only controls with confirmation prompts to prevent accidental d
 
 For leaderboard correctness, deleting a completed game automatically reduces wins for that user by one because wins are aggregated from existing completed games in the database. Once the game document is removed, it no longer contributes to the win-count query.
 
-## Custom Games (Bonus)
+## Custom Games (Bonus 10 pts)
 
 We added a Custom Game creator flow that lets a signed-in user build a new **9×9** Sudoku puzzle from scratch.
 
