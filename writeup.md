@@ -28,3 +28,18 @@ On the frontend, we added a visible `DELETE` button in two places:
 Both are creator-only controls with confirmation prompts to prevent accidental deletion.
 
 For leaderboard correctness, deleting a completed game automatically reduces wins for that user by one because wins are aggregated from existing completed games in the database. Once the game document is removed, it no longer contributes to the win-count query.
+
+## Custom Games (Bonus)
+
+We added a Custom Game creator flow that lets a signed-in user build a new **9×9** Sudoku puzzle from scratch.
+
+On the frontend, the **Select a Game** page (`/games`) includes a new button **Create Custom Game** that routes to `/custom`. The `/custom` page shows an empty 9×9 board where the user can enter “given” values, highlights conflicts in real time, and submits the grid to the backend. On success, the user is redirected to the newly created game at `/game/:gameId`.
+
+On the backend, `POST /api/sudoku/custom` accepts `initialBoard` (a 9×9 grid of integers 0–9 where 0 means empty), rejects invalid shapes/values, rejects conflicting givens, and then runs a backtracking solver that **counts solutions and requires exactly one** (uniquely solvable). If accepted, the server creates a `Game` document with `difficulty: "CUSTOM"`, stores `initialBoard` and `currentBoard` as the submitted grid, stores the unique `solution`, and returns `{ gameId }`.
+
+Assumptions:
+- **Auth required**: only logged-in users can submit (`requireAuth`); signed-out users can view the page but cannot create a custom game.
+- **Standard rules**: custom games are classic **9×9** Sudoku with **3×3** boxes and digits **1–9**.
+- **Input encoding**: boards are sent as a **9×9 integer grid** with values **0–9**, where `0` means blank.
+- **Uniqueness definition**: a puzzle is accepted only if it has **exactly one valid solution**; unsolvable or multi-solution puzzles are rejected.
+- **Persistence model**: custom puzzles are stored in MongoDB in the `games` collection as a normal `Game` document with `difficulty: "CUSTOM"`.
