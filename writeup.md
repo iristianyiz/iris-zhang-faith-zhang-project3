@@ -1,3 +1,22 @@
+## 2) Given more time, what additional features, functional or design changes would you make?
+
+If we had more time, we would focus on improving both product polish and technical robustness.
+
+- **Gameplay quality improvements**: add optional hint tiers (single-cell hint vs strategy hint), mistake checking modes, and richer game-completion feedback.
+- **Performance and reliability**: introduce caching for expensive leaderboard queries and add more structured API integration tests around auth/session edge cases.
+- **Custom game UX**: provide a clearer validation panel (for example, conflict summaries by row/column/box) and a guided “publish checklist” before submitting a custom puzzle.
+- **Accessibility and responsive design**: improve keyboard-only board navigation, screen-reader labels for Sudoku cells, and small-screen spacing/typography for longer play sessions.
+- **Ops and observability**: add basic monitoring/alerting and deployment health checks so production issues can be identified earlier.
+
+## 3) What assumptions did you make while working on this assignment?
+
+Throughout development, we made a few practical assumptions to keep implementation aligned with the assignment scope:
+
+- **Authentication boundaries**: logged-out users can browse and view boards, but any state-changing action (create, update, delete, high-score write) requires login.
+- **Ownership rules**: only the creator of a game can delete it, and this authorization is enforced on the backend (not just hidden in the UI).
+- **Leaderboard source of truth**: wins are derived from completed games currently in the database, so deleting a completed game should reduce the corresponding win count.
+- **Session model**: server-side sessions with cookies are the primary auth mechanism, and cookies must be configured differently for local development vs production.
+- **Sudoku formats**: Easy and Normal game modes follow fixed board sizes/rules, while custom mode uses a standard 9×9 format with uniqueness checks.
 
 
 # Bonus Points Write-Up
