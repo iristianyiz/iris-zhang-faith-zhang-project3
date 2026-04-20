@@ -1,4 +1,8 @@
+
+
 # Bonus Points Write-Up
+## Total Attainable BONUS points per person = 21: AI Survey(1pt) + Submit Early(3pts) + Password Encryption(2pts) + Delete Game(5pts) + Custom Games(10pts)
+
 
 ## Password Encryption (2 pts)
 
