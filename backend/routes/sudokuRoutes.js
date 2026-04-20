@@ -147,8 +147,12 @@ sudokuRouter.put("/:gameId", requireAuth, async (req, res) => {
   }
 
   if (req.body?.reset === true) {
-    game.currentBoard = game.initialBoard.map((row) => [...row]);
-    await game.save();
+    const resetBoard = game.initialBoard.map((row) => [...row]);
+    await Game.findByIdAndUpdate(
+      gameId,
+      { currentBoard: resetBoard },
+      { new: false },
+    );
     const populated = await Game.findById(gameId)
       .populate("creator", "username")
       .populate("completedBy", "username");
@@ -170,12 +174,15 @@ sudokuRouter.put("/:gameId", requireAuth, async (req, res) => {
     return;
   }
 
-  game.currentBoard = board.map((row) => [...row]);
-  if (isWinningBoard(game.currentBoard, game.solution)) {
-    game.completedBy = req.authUser._id;
-    game.completedAt = new Date();
+  const nextBoard = board.map((row) => [...row]);
+  const updates = { currentBoard: nextBoard };
+  if (isWinningBoard(nextBoard, game.solution)) {
+    updates.completedBy = req.authUser._id;
+    updates.completedAt = new Date();
   }
-  await game.save();
+
+  // Avoid crashing the server on concurrent saves (VersionError from optimistic concurrency).
+  await Game.findByIdAndUpdate(gameId, updates, { new: false });
 
   const populated = await Game.findById(gameId)
     .populate("creator", "username")
