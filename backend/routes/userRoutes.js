@@ -57,7 +57,9 @@ userRouter.post("/login", async (req, res) => {
     return;
   }
   try {
-    const user = await User.findOne({ username: username.trim() });
+    const user = await User.findOne({ username: username.trim() }).select(
+      "+passwordHash username",
+    );
     if (!user) {
       res.status(401).json({ error: "Invalid credentials" });
       return;

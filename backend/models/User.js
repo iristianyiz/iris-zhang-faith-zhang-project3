@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 32,
     },
-    passwordHash: { type: String, required: true },
+    // Never return password hashes from queries unless explicitly selected.
+    passwordHash: { type: String, required: true, select: false },
   },
   { timestamps: true },
 );
@@ -23,7 +24,12 @@ userSchema.virtual("createdGames", {
   foreignField: "creator",
 });
 
-userSchema.set("toJSON", { virtuals: true });
-userSchema.set("toObject", { virtuals: true });
+function omitSecrets(doc, ret) {
+  delete ret.passwordHash;
+  return ret;
+}
+
+userSchema.set("toJSON", { virtuals: true, transform: omitSecrets });
+userSchema.set("toObject", { virtuals: true, transform: omitSecrets });
 
 export const User = mongoose.model("User", userSchema);
