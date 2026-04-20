@@ -7,11 +7,12 @@ import { formatGameDate } from "../utils/formatDate.js";
 
 export function GamesPage() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, username } = useAuth();
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +47,25 @@ export function GamesPage() {
       setError(getApiErrorMessage(err, "Could not create game."));
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function removeGame(game) {
+    if (!isLoggedIn || !game?.id || game.creatorUsername !== username) return;
+    const ok = window.confirm(
+      `Delete "${game.name}" permanently? This cannot be undone.`,
+    );
+    if (!ok) return;
+
+    setDeletingId(game.id);
+    setError(null);
+    try {
+      await api.deleteGame(game.id);
+      setGames((prev) => prev.filter((g) => g.id !== game.id));
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not delete game."));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -133,6 +153,16 @@ export function GamesPage() {
                 <Link className="btn btn-primary btn-small" to={`/game/${g.id}`}>
                   Play
                 </Link>
+                {isLoggedIn && g.creatorUsername === username ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-small"
+                    onClick={() => void removeGame(g)}
+                    disabled={deletingId === g.id}
+                  >
+                    {deletingId === g.id ? "Deleting…" : "DELETE"}
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
