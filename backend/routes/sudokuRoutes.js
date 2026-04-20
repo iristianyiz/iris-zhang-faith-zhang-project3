@@ -6,8 +6,10 @@ import { optionalAuth, requireAuth } from "../middleware/auth.js";
 import { generateRandomGameName } from "../utils/gameName.js";
 import {
   DIFFICULTY_LAYOUT,
+  countSolutions,
   generateSolvedGrid,
   givensPreserved,
+  isValidGivenGrid,
   isValidGridShape,
   isWinningBoard,
   makePuzzleFromSolution,
@@ -106,6 +108,61 @@ sudokuRouter.post("/", requireAuth, async (req, res) => {
       }
     }
   }
+  res.status(503).json({ error: "Could not allocate a unique game name" });
+});
+
+sudokuRouter.post("/custom", requireAuth, async (req, res) => {
+  const puzzle = req.body?.initialBoard ?? req.body?.board ?? req.body?.puzzle;
+  const layout = DIFFICULTY_LAYOUT.NORMAL; // standard 9×9
+  const { size, boxRows, boxCols } = layout;
+  const maxDigit = size;
+
+  if (!isValidGridShape(puzzle, size, maxDigit)) {
+    res.status(400).json({
+      error: `initialBoard must be a ${size}×${size} grid with values 0–${maxDigit}`,
+    });
+    return;
+  }
+
+  // Validate givens don't already violate Sudoku constraints.
+  const puzzleCopy = puzzle.map((row) => [...row]);
+  if (!isValidGivenGrid(puzzleCopy, size, maxDigit, boxRows, boxCols)) {
+    res.status(400).json({ error: "Invalid puzzle (conflicting givens)" });
+    return;
+  }
+
+  // Must have exactly 1 solution.
+  const { count, solution } = countSolutions(puzzleCopy, layout, 2);
+  if (count === 0) {
+    res.status(400).json({ error: "Puzzle is unsolvable" });
+    return;
+  }
+  if (count !== 1 || !solution) {
+    res.status(400).json({ error: "Puzzle must have exactly one solution" });
+    return;
+  }
+
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const name = `Custom ${generateRandomGameName()}`;
+    try {
+      const game = await Game.create({
+        name,
+        difficulty: "CUSTOM",
+        creator: req.authUser._id,
+        initialBoard: puzzle,
+        currentBoard: puzzle.map((row) => [...row]),
+        solution,
+      });
+      res.status(201).json({ gameId: game._id.toString() });
+      return;
+    } catch (err) {
+      if (err.code !== 11000) {
+        res.status(500).json({ error: "Could not create custom game" });
+        return;
+      }
+    }
+  }
+
   res.status(503).json({ error: "Could not allocate a unique game name" });
 });
 

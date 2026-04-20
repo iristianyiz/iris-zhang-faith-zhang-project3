@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const gameSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true, trim: true },
-    difficulty: { type: String, enum: ["EASY", "NORMAL"], required: true },
+    difficulty: { type: String, enum: ["EASY", "NORMAL", "CUSTOM"], required: true },
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -38,6 +38,8 @@ export const api = {
   listGames: () => request("/api/sudoku"),
   createGame: (body) =>
     request("/api/sudoku", { method: "POST", body: JSON.stringify(body) }),
+  createCustomGame: (body) =>
+    request("/api/sudoku/custom", { method: "POST", body: JSON.stringify(body) }),
   getGame: (gameId) => request(`/api/sudoku/${gameId}`),
   updateGame: (gameId, body) =>
     request(`/api/sudoku/${gameId}`, {

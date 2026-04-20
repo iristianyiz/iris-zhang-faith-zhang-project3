@@ -113,6 +113,17 @@ export function GamesPage() {
         >
           {busy === "EASY" ? "Creating…" : "Create easy game (6×6)"}
         </button>
+        <Link
+          className="btn btn-secondary"
+          to="/custom"
+          aria-disabled={!isLoggedIn || busy !== null}
+          onClick={(e) => {
+            if (!isLoggedIn || busy !== null) e.preventDefault();
+          }}
+          title={!isLoggedIn ? "Sign in to create a custom game" : undefined}
+        >
+          Create Custom Game
+        </Link>
       </div>
 
       {error ? <div className="banner-error">{error}</div> : null}

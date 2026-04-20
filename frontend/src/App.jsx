@@ -3,6 +3,7 @@ import { AppLayout } from "./components/AppLayout.jsx";
 import { HomePage } from "./pages/HomePage.jsx";
 import { GamesPage } from "./pages/GamesPage.jsx";
 import { GamePage } from "./pages/GamePage.jsx";
+import { CustomGamePage } from "./pages/CustomGamePage.jsx";
 import { RulesPage } from "./pages/RulesPage.jsx";
 import { ScoresPage } from "./pages/ScoresPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/games" element={<GamesPage />} />
         <Route path="/game/:gameId" element={<GamePage />} />
+        <Route path="/custom" element={<CustomGamePage />} />
         <Route path="/rules" element={<RulesPage />} />
         <Route path="/scores" element={<ScoresPage />} />
         <Route path="/login" element={<LoginPage />} />

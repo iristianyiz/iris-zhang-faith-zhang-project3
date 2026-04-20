@@ -26,6 +26,100 @@ function shuffleInPlace(arr) {
 }
 
 /**
+ * Validates that all pre-filled (non-zero) cells do not conflict with each other.
+ * @param {Grid} grid
+ * @param {number} size
+ * @param {number} maxDigit
+ * @param {number} boxRows
+ * @param {number} boxCols
+ */
+export function isValidGivenGrid(grid, size, maxDigit, boxRows, boxCols) {
+  if (!isValidGridShape(grid, size, maxDigit)) return false;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const v = grid[r][c];
+      if (v === 0) continue;
+      grid[r][c] = 0;
+      const ok = isValidPlacement(grid, r, c, v, size, boxRows, boxCols);
+      grid[r][c] = v;
+      if (!ok) return false;
+    }
+  }
+  return true;
+}
+
+function cloneGrid(grid) {
+  return grid.map((row) => [...row]);
+}
+
+/**
+ * Counts solutions for a given grid, with early-exit once `limit` is reached.
+ * Also returns the first solution found (if any).
+ *
+ * @param {Grid} grid
+ * @param {{ size: number, boxRows: number, boxCols: number }} layout
+ * @param {number} limit
+ * @returns {{ count: number, solution: Grid | null }}
+ */
+export function countSolutions(grid, layout, limit = 2) {
+  const { size, boxRows, boxCols } = layout;
+  const working = cloneGrid(grid);
+
+  /** @type {Grid | null} */
+  let firstSolution = null;
+  let count = 0;
+
+  function findBestEmptyCell() {
+    let best = null;
+    let bestCandidates = null;
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (working[r][c] !== 0) continue;
+        const candidates = [];
+        for (let n = 1; n <= size; n++) {
+          if (isValidPlacement(working, r, c, n, size, boxRows, boxCols)) {
+            candidates.push(n);
+          }
+        }
+        if (candidates.length === 0) return { deadEnd: true };
+        if (!best || candidates.length < bestCandidates.length) {
+          best = { r, c };
+          bestCandidates = candidates;
+          if (bestCandidates.length === 1) return { ...best, candidates };
+        }
+      }
+    }
+
+    if (!best) return null; // solved
+    return { ...best, candidates: bestCandidates };
+  }
+
+  function backtrack() {
+    if (count >= limit) return;
+
+    const next = findBestEmptyCell();
+    if (next === null) {
+      count++;
+      if (!firstSolution) firstSolution = cloneGrid(working);
+      return;
+    }
+    if (next.deadEnd) return;
+
+    const { r, c, candidates } = next;
+    for (const n of candidates) {
+      working[r][c] = n;
+      backtrack();
+      working[r][c] = 0;
+      if (count >= limit) return;
+    }
+  }
+
+  backtrack();
+  return { count, solution: firstSolution };
+}
+
+/**
  * @param {Grid} grid
  * @param {number} row
  * @param {number} col
