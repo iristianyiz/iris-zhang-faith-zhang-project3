@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import { SudokuBoard } from "../components/SudokuBoard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -9,6 +9,7 @@ import { conflictGrid } from "../utils/sudokuValidate.js";
 
 export function GamePage() {
   const { gameId } = useParams();
+  const navigate = useNavigate();
   const { isLoggedIn, username } = useAuth();
   const [game, setGame] = useState(null);
   const [board, setBoard] = useState(null);
@@ -136,11 +137,35 @@ export function GamePage() {
     }
   }
 
+  async function handleDeleteGame() {
+    if (!gameId || !isLoggedIn || !viewerIsCreator) return;
+    const ok = window.confirm(
+      "Delete this game permanently? This cannot be undone.",
+    );
+    if (!ok) return;
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    try {
+      setSaveError(null);
+      await api.deleteGame(gameId);
+      navigate("/games");
+    } catch (err) {
+      setSaveError(getApiErrorMessage(err, "Could not delete this game."));
+    }
+  }
+
   const viewerIsCompleter = Boolean(
     game?.completed &&
       username &&
       game.completedByUsername &&
       game.completedByUsername === username,
+  );
+  const viewerIsCreator = Boolean(
+    game?.creatorUsername && username && game.creatorUsername === username,
   );
 
   return (
@@ -206,7 +231,7 @@ export function GamePage() {
             />
           </div>
 
-          <div className="row" style={{ justifyContent: "center" }}>
+          <div className="row" style={{ justifyContent: "center", gap: "0.75rem" }}>
             <button
               type="button"
               className="btn btn-secondary"
@@ -224,6 +249,15 @@ export function GamePage() {
             >
               Reset puzzle
             </button>
+            {viewerIsCreator ? (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => void handleDeleteGame()}
+              >
+                DELETE
+              </button>
+            ) : null}
           </div>
           <p className="muted" style={{ textAlign: "center", marginBottom: 0 }}>
             Reset restores the original clues and clears your entries for this

@@ -88,7 +88,7 @@ export function RulesPage() {
           <strong>Made by</strong> Iris Zhang &amp; Faith Zhang.
         </p>
         <p className="muted" style={{ marginTop: "0.5rem" }}>
-          Contact (demo placeholders):
+          Contact (we use placeholders here for privacy concerns):
         </p>
         <ul>
           <li>
