@@ -1,3 +1,12 @@
+## 1) ## Challenges Faced
+
+- **Sudoku correctness and edge cases**: keeping row/column/box rules consistent across frontend validation and backend enforcement, and correctly handling “givens” vs user-entered values.
+- **Unique-solution verification**: implementing backtracking in a way that can *count* solutions (and stop early after 2) so custom puzzles are accepted only when they are uniquely solvable.
+- **State syncing and reliability**: saving board progress to the server without making the UI feel laggy (debouncing, error recovery, and avoiding accidental overwrites).
+- **Configuring MongoDB**: aligning local vs production connection strings (`MONGODB_URI`), handling missing DB setups gracefully during development, and ensuring collections/indexes behaved as expected.
+- **Collaborating on MongoDB changes**: coordinating schema changes (like adding a `CUSTOM` difficulty) and API contracts so teammates’ local databases and seeded data didn’t break across branches.
+- **Auth-gated features**: supporting read-only browsing while logged out, while ensuring create/update/delete actions are enforced server-side (`requireAuth`).
+
 ## 2) Given more time, what additional features, functional or design changes would you make?
 
 If we had more time, we would focus on improving both product polish and technical robustness.
@@ -18,6 +27,9 @@ Throughout development, we made a few practical assumptions to keep implementati
 - **Session model**: server-side sessions with cookies are the primary auth mechanism, and cookies must be configured differently for local development vs production.
 - **Sudoku formats**: Easy and Normal game modes follow fixed board sizes/rules, while custom mode uses a standard 9×9 format with uniqueness checks.
 
+## 4) ow long did this assignment take to complete? 
+
+About a week, from start to finish, including recording a walk-through.
 
 # Bonus Points Write-Up
 ## Total Attainable BONUS points per person = 21: AI Survey(1pt) + Submit Early(3pts) + Password Encryption(2pts) + Delete Game(5pts) + Custom Games(10pts)
