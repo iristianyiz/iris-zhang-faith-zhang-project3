@@ -1,4 +1,3 @@
-# Writeup & Bonus Points 
 ## 1) ## Challenges Faced
 
 - **Sudoku correctness and edge cases**: keeping row/column/box rules consistent across frontend validation and backend enforcement, and correctly handling “givens” vs user-entered values.
