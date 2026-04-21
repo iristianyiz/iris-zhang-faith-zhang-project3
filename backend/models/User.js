@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+userSchema.index({ username: 1 });
+
 userSchema.virtual("createdGames", {
   ref: "Game",
   localField: "_id",
