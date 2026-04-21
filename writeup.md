@@ -27,17 +27,17 @@ Throughout development, we made a few practical assumptions to keep implementati
 - **Session model**: server-side sessions with cookies are the primary auth mechanism, and cookies must be configured differently for local development vs production.
 - **Sudoku formats**: Easy and Normal game modes follow fixed board sizes/rules, while custom mode uses a standard 9×9 format with uniqueness checks.
 
-## 4) ow long did this assignment take to complete? 
+## 4) How long did this assignment take to complete? 
 
 About a week, from start to finish, including recording a walk-through.
 
 # Bonus Points Write-Up
 ## Total Attainable BONUS points per person = 21: AI Survey(1pt) + Submit Early(3pts) + Password Encryption(2pts) + Delete Game(5pts) + Custom Games(10pts)
 
-## AI Survey - 1pt
+## AI Survey (1 pt)
 [see canvas attachment for screenshots]
 
-## Submit Early - 3pts
+## Submit Early (3 pts)
 We submitted the assignment 48hrs before the deadline.
 
 ## Password Encryption (2 pts)
